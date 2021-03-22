@@ -1,0 +1,33 @@
+﻿  Concept-0.cpp
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(608,8): warning C4018: '>=': no coinciden signed/unsigned
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(666,49): error C2664: 'DomainValue::DomainValue(const DomainValue &)': el argumento 1 no puede convertirse de '_Ty1' a 'const DomainValue &'
+          with
+          [
+              _Ty1=std::pair<int,int>
+          ]
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(666,49): message : Razón: no se puede realizar la conversión de '_Ty1' a 'const DomainValue'
+          with
+          [
+              _Ty1=std::pair<int,int>
+          ]
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(666,42): message : No hay disponible ningún operador de conversión definido por el usuario que pueda realizar esta conversión, o bien no se puede llamar al operador
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(120,1): message : vea la declaración de 'DomainValue::DomainValue'
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(668,2): error C2065: 'traversalQueue': identificador no declarado
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(674,10): error C2065: 'traversalQueue': identificador no declarado
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(677,23): error C2065: 'traversalQueue': identificador no declarado
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(678,3): error C2065: 'traversalQueue': identificador no declarado
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(681,33): error C2039: "task": no es un miembro de "std::pair<int,int>"
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(190): message : vea la declaración de 'std::pair<int,int>'
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(692,33): error C2039: "task": no es un miembro de "std::pair<int,int>"
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(190): message : vea la declaración de 'std::pair<int,int>'
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(694,53): error C2039: "task": no es un miembro de "std::pair<int,int>"
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(190): message : vea la declaración de 'std::pair<int,int>'
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(699,36): error C2039: "task": no es un miembro de "std::pair<int,int>"
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(190): message : vea la declaración de 'std::pair<int,int>'
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(699,93): error C2039: "task": no es un miembro de "std::pair<int,int>"
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(190): message : vea la declaración de 'std::pair<int,int>'
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(700,36): error C2039: "task": no es un miembro de "std::pair<int,int>"
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(190): message : vea la declaración de 'std::pair<int,int>'
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(702,41): error C2039: "task": no es un miembro de "std::pair<int,int>"
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(190): message : vea la declaración de 'std::pair<int,int>'
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(703,8): error C2065: 'traversalQueue': identificador no declarado
