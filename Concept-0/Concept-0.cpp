@@ -9,6 +9,8 @@
 #include <sstream> // std::stringstream
 #include <cstdlib>
 #include <queue>
+#include <set>
+#include <map>
 using namespace std;
 
 class Task {
@@ -93,7 +95,7 @@ public:
 
 class DomainValue {
 public:
-	long id = 0;
+	short int id = 0;
 	Employee employee;
 	std::time_t date{};
 
@@ -101,13 +103,13 @@ public:
 	DomainValue() {
 	}
 
-	DomainValue(long id, Employee employee, std::time_t date) {
+	DomainValue(int id,  Employee employee, std::time_t date) {
 		this->id = id;
 		this->employee = employee;
 		this->date = date;
 	}
 
-	void printDomainValue() {
+	void printDomainValue() const {
 
 		std::cout << this->id << ' ';
 		std::cout << this->employee.name << ' ';
@@ -119,52 +121,30 @@ public:
 
 };
 
-class TaskVariable {
+class Variable {
 public:
-	long id = 0;
+	short int id = 0;
 	Task task;
-	std::vector<DomainValue> domains;
-	std::vector<std::pair<long, long>> mutex;
+	std::set<DomainValue> domains;
 
 public:
-	TaskVariable() {
+	Variable() {
 	}
 
-	TaskVariable(long id, Task task, Employee employee, std::vector<DomainValue> domains, std::vector<std::pair<long, long>> mutex) {
+	Variable(int id, Task task, Employee employee, std::set<DomainValue> domains) {
 		this->id = id;
 		this->task = task;
 		this->domains = domains;
-		this->mutex = mutex;
 	}
 
-	void printTaskVariable() {
+	void printVariable() const {
 
-		std::cout << "--- " << this->id << ' ';
-		std::cout << this->task.name << " ---" << endl;
-		for (size_t i = 0; i < this->domains.size(); i++)
+		std::cout << "--- " << this->task.name << "-" << this->id << " ---" << endl;
+
+		for (auto DOMAIN1 : domains)
 		{
-			domains.at(i).printDomainValue();
+			DOMAIN1.printDomainValue();
 		}
-		for (size_t i = 0; i < mutex.size(); i++)
-		{
-			std::cout << this->mutex.at(i).first << " with " << this->mutex.at(i).second << ' ';
-		}
-		cout << endl;
-	}
-
-	void printMutex() {
-
-		cout << "Printing mutex list of  " << this->id << endl;
-		for (size_t i = 0; i < mutex.size(); i++)
-		{
-			std::cout << this->mutex.at(i).first << " with " << this->mutex.at(i).second << ' ';
-		}
-		cout << endl;
-	}
-
-	void printMutexSize() {
-
-		cout << "Mutex size of " << this->id << " is: " << this->mutex.size() << endl;
 		cout << endl;
 	}
 
@@ -181,16 +161,31 @@ public:
 	}
 };
 
+// Overloading for sets of Variable and DomainValue
+bool operator< (const Variable& obj1, const Variable& obj2) {
+
+	return obj1.id < obj2.id;
+
+}
+
+bool operator< (const DomainValue& obj1, const DomainValue& obj2) {
+
+	return obj1.id < obj2.id;
+
+}
 
 // Static variables and those taken from input
 static size_t labourDays = 5;
 static size_t startHour = 9;
 static size_t finishHour = 17;
-static size_t numberOfWeeks = 6;
+static size_t numberOfWeeks = 2;
 static std::vector<std::pair<Task, std::pair<int, int>>> taskIDs;
 static std::string lunchTime;
 static std::string scrumTime;
 static std::tm startDate;
+static std::set<Variable> VARIABLES;
+static std::set<DomainValue> DOMAINS;
+static std::map<DomainValue, vector<DomainValue*>> MUTEX;
 
 void writeCSV(std::string filename, std::vector<std::pair<std::string, std::vector<string>>> dataset) {
 	// Make a CSV file with one or more columns of integer values
@@ -340,14 +335,15 @@ void printTasks(std::vector<Task> taskList) {
 	cout << endl;
 }
 
-void printTaskVariables(std::vector<TaskVariable> possibleCombinations) {
+void printVariables() {
 
 	cout << "Printing combinations" << endl;
 	cout << "------------" << endl;
 
-	for (size_t i = 0; i < possibleCombinations.size(); i++)
+	for (auto VARIABLE : VARIABLES)
 	{
-		possibleCombinations.at(i).printTaskVariable();
+		VARIABLE.printVariable();
+		cout << "Size: " << VARIABLE.domains.size() << endl;
 	}
 
 	cout << endl;
@@ -459,14 +455,13 @@ std::vector<Task> fillTasks(std::vector<std::pair<std::string, std::vector<strin
 	return taskList;
 }
 
-std::vector<TaskVariable> grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
+void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 
 	cout << "Grounding of tasks" << endl;
 	cout << "------------" << endl;
 
 	// Auxiliary variables
-	std::vector<TaskVariable> TaskVariables;
-	TaskVariable temporalTaskVariable;
+	Variable temporalVariable;
 	DomainValue temporalDomain;
 	std::time_t temporalDate = mktime(&startDate);
 	std::pair<int, int> temporalPair1;
@@ -474,7 +469,6 @@ std::vector<TaskVariable> grounding(std::vector<Employee> employeeList, std::vec
 
 	//cout << "Time in epoch: " << temporalDate << endl;
 	int iterations = 0;
-	int taskCounter = 0;
 
 	// For each Task
 	for (size_t i = 0; i < taskList.size(); i++) {
@@ -487,8 +481,8 @@ std::vector<TaskVariable> grounding(std::vector<Employee> employeeList, std::vec
 		temporalPair1.first = iterations;
 
 		// We assign the task
-		temporalTaskVariable.task = taskList.at(i);
-		temporalTaskVariable.id = taskCounter;
+		temporalVariable.task = taskList.at(i);
+		temporalVariable.id = i;
 
 		// For each Employee
 		for (size_t j = 0; j < employeeList.size(); j++)
@@ -510,16 +504,17 @@ std::vector<TaskVariable> grounding(std::vector<Employee> employeeList, std::vec
 
 								// We generate a combination of all of the factors
 								temporalDomain.employee = employeeList.at(j);
-
 								struct std::tm hora;
 								localtime_s(&hora, &temporalDate);
+								temporalDomain.date = temporalDate;
+								temporalDomain.id = iterations;
 
 								//cout << "Day: " << hora.tm_mday << endl;
 								//cout << "Hour: " << hora.tm_hour << endl;
 
-								temporalDomain.date = temporalDate;
-								temporalDomain.id = iterations;
-								temporalTaskVariable.domains.push_back(temporalDomain);
+								temporalVariable.domains.insert(temporalDomain);
+
+								DOMAINS.insert(temporalDomain);
 
 								temporalDate += 3600;
 								iterations++;
@@ -552,14 +547,13 @@ std::vector<TaskVariable> grounding(std::vector<Employee> employeeList, std::vec
 		temporalPair2.first = taskList.at(i);
 		temporalPair2.second = temporalPair1;
 
-		taskCounter++;
-
-		// We push the data into the vector
-		TaskVariables.push_back(temporalTaskVariable);
+		// We push the data into the set
+		VARIABLES.insert(temporalVariable);
+		//cout << "Set size: " << temporalVariable.domains.size() << endl;
 		taskIDs.push_back(temporalPair2);
 
 		// We clean the temporal variable
-		temporalTaskVariable.domains.clear();
+		temporalVariable.domains.clear();
 
 		cout << "Task: " << taskList.at(i).name << " IDs " << taskIDs.at(i).second.first << " to " << taskIDs.at(i).second.second << endl;
 
@@ -568,122 +562,119 @@ std::vector<TaskVariable> grounding(std::vector<Employee> employeeList, std::vec
 	cout << endl;
 	cout << "All tasks have been grounded" << endl;
 	cout << endl;
-	return TaskVariables;
 }
 
-std::vector<TaskVariable> mutex(std::vector<TaskVariable> TaskVariables) {
+void mutex() {
 	cout << "Calculating mutex" << endl;
 	cout << "------------" << endl;
 
 	int counter = 0;
-	std::pair<int, int> temporalPair;
+	std::pair<DomainValue, vector<DomainValue*>> temporalMutexPair;
+	vector<DomainValue*> temporalMutexVector;
 
+	//std::set<Variable>::iterator variableIterator = VARIABLES.begin();
+	
 	// For each Task
-	for (size_t i = 0; i < TaskVariables.size(); i++)
-	{
+	for (auto VARIABLE1 : VARIABLES)
+	{	
+		cout << "Variable1 is " << VARIABLE1.task.name << "-" << counter << endl;
+		//std::set<DomainValue>::iterator domainIterator = (*variableIterator).domains.begin();
+		
 		// For each value in the domain of the task
-		for (size_t j = 0; j < TaskVariables.at(i).domains.size(); j++)
+		for (auto VALUE1 : VARIABLE1.domains)
 		{
 			// We compare it against the domain of the rest of the tasks
 			// Each value is mutex with the rest of its domain
-			for (size_t t = 0; t < TaskVariables.size(); t++)
+			for (auto VARIABLE2 : VARIABLES)
 			{
-				for (size_t d = 0; d < TaskVariables.at(t).domains.size(); d++)
+				for (auto VALUE2 : VARIABLE2.domains)
 				{
 					// We check that we are not in the same task
-					if (TaskVariables.at(i).id != TaskVariables.at(t).id)
+					if (VARIABLE1.task.name.compare(VARIABLE2.task.name) != 0)
 					{
 						// We add all the combinations that happen at that time
-						if (TaskVariables.at(i).domains.at(j).date == TaskVariables.at(t).domains.at(d).date)
+						if (VALUE1.date == VALUE2.date)
 						{
-							temporalPair.first = TaskVariables.at(i).domains.at(j).id;
-							temporalPair.second = TaskVariables.at(t).domains.at(d).id;
-							TaskVariables.at(i).mutex.push_back(temporalPair);
+							temporalMutexVector.push_back(&VALUE2);
 							counter++;
 						}
 						// We add all combinations of the same employee at the duration of the task
 						// Duration of the task is 3600secs*hours
-						else if ((TaskVariables.at(i).domains.at(j).employee.name.compare(TaskVariables.at(t).domains.at(d).employee.name) == 0) &&
-							(TaskVariables.at(i).domains.at(j).date + (static_cast<unsigned __int64>(TaskVariables.at(i).getTaskDuration(TaskVariables.at(i).domains.at(j).employee.role)) * 3600)) 
-							>= TaskVariables.at(t).domains.at(d).date)
-							{
-							temporalPair.first = TaskVariables.at(i).domains.at(j).id;
-							temporalPair.second = TaskVariables.at(t).domains.at(d).id;
-							TaskVariables.at(i).mutex.push_back(temporalPair);
+						else if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && 
+							(VALUE1.date + (static_cast<unsigned __int64>(VARIABLE1.getTaskDuration(VALUE1.employee.role))) * 3600) >= VALUE2.date)
+						{
+							temporalMutexVector.push_back(&VALUE2);
 							counter++;
 						}
 						// We add all the combinations that have tasks that depend on the actual one and are done before it
-						else if (TaskVariables.at(t).task.dependsOn(TaskVariables.at(i).task.name) && TaskVariables.at(i).domains.at(j).date > TaskVariables.at(t).domains.at(d).date) {
-							temporalPair.first = TaskVariables.at(i).domains.at(j).id;
-							temporalPair.second = TaskVariables.at(t).domains.at(d).id;
-							TaskVariables.at(i).mutex.push_back(temporalPair);
+						else if (VARIABLE2.task.dependsOn(VARIABLE1.task.name) && VALUE1.date > VALUE2.date) {
+							temporalMutexVector.push_back(&VALUE2);
 							counter++;
 						}
 					}
 				}
 			}
 
-			//cout << "Mutex size of IDs " << TaskVariables.at(i).id << "-" << TaskVariables.at(i).domains.at(j).id << ": " << counter << endl;
+			//cout << "Mutex size of " << VARIABLE1.task.name << "-" << counter << endl;
 			counter = 0;
+			temporalMutexPair.first = VALUE1;
+			temporalMutexPair.second = temporalMutexVector;
+			
+			MUTEX.insert(temporalMutexPair);
 
 		}
-
-		TaskVariables.at(i).printMutexSize();
-
+		//cout << "Mutex size" << MUTEX.at().size() << endl;
 	}
-
-	return TaskVariables;
 
 }
 
 // Receives the number of tasks and a list with all the possible combinations to iterate over them
-void DFS(int taskNumber, std::vector<TaskVariable> TaskVariables) {
+void DFS(int taskNumber, std::vector<Variable> TaskVariables) {
 
 	cout << "Executing DFS algorithm" << endl;
 	cout << "------------" << endl;
 
-	/* A pair of TaskVariable and DomainValue act as nodes of the graph we travel */
-	/* Each pair is a node that is visited */ 
+	/* An instance of a Variable with a Value acts as a node of the graph we travel */
 
-	// List where we store if a pair has been visited
-	std::vector<std::pair<std::pair<int, int>, bool>> visitedNodes;
+	// List where we store if a node has been visited
+	std::map<DomainValue, bool> visitedNodes;
 
 	// We assign the list as not visited (false)
-	//for (size_t i = 0; i < TaskVariables.size(); i++)
-	//{
-		//AssignedTask assignedTask(possibleCombinations.at(i).first, possibleCombinations.at(i).second);
-		//std::pair<AssignedTask, bool> pair(assignedTask, false);
-		//visitedNodes.push_back(pair);
-	//}
+	for (auto VALUE : DOMAINS)
+	{
+		std::pair<DomainValue, bool> pair(VALUE, false);
+		visitedNodes.insert(pair);
+
+	}
 
 	// Queue for the TaskVariable being traversed
-	std::queue<TaskVariable> taskQueue;
+	std::queue<Variable> taskQueue;
 
 	// Queue for the DomainValue being traversed
 	std::queue<DomainValue> domainQueue;
 
 	// We insert the first assignedTask of the queue and mark it as visited (true)
-	std::pair<int, int> firstTask(TaskVariables.at(0).id, TaskVariables.at(0).domains.at(0).id);
-	std::pair<std::pair<int, int>, bool> firstPairPair(firstTask, true);
+	//std::pair<int, int> firstTask(TaskVariables.at(0).id, TaskVariables.at(0).domains.at(0).id);
+	//std::pair<std::pair<int, int>, bool> firstPairPair(firstTask, true);
 	taskQueue.push(TaskVariables.at(0));
-	domainQueue.push();
-	traversalQueue.push(firstPairPair);
+	/*domainQueue.push();
+	traversalQueue.push(firstPairPair);*/
 
 	// We check if list is empty
 	//if (traversalQueue.empty()) return;
 
 	// We initialize the traversal
-	while (!traversalQueue.empty()) {
+	//while (!traversalQueue.empty()) {
 
 		// Get task from queue and remove it
-		TaskVariable node = taskQueue.front();
+		Variable node = taskQueue.front();
 		taskQueue.pop();
 		for (size_t i = 0; i < visitedNodes.size(); i++)
 		{
-			if (visitedNodes.at(i).first.task.name.compare(node.task.name) == 0)
+			/*if (visitedNodes.at(i).first.task.name.compare(node.task.name) == 0)
 			{
 				visitedNodes.at(i).second = true;
-			}
+			}*/
 		}
 		//cout << "Traversing node: " << node.employee.name << " & " << node.task.name << endl;
 
@@ -691,26 +682,26 @@ void DFS(int taskNumber, std::vector<TaskVariable> TaskVariables) {
 		for (size_t i = 0; i < visitedNodes.size(); i++)
 		{
 			// If the Node is not the current task and has not been visited
-			if (visitedNodes.at(i).first.task.name.compare(node.task.name) == 1 && visitedNodes.at(i).second == false) {
+			//if (visitedNodes.at(i).first.task.name.compare(node.task.name) == 1 && visitedNodes.at(i).second == false) {
 
-				for (size_t j = 0; j < visitedNodes.at(i).first.task.dependencies.size(); j++)
-				{
-					for (size_t k = 0; k < visitedNodes.size(); k++)
-					{
-						// If the dependent nodes have been visited
-						if (visitedNodes.at(i).first.task.dependencies.at(j).compare(visitedNodes.at(k).first.task.name) == 0
-							&& visitedNodes.at(i).first.task.dependencies.at(j).compare("-") != 0) {
-							// We add the node to the queue
-							cout << visitedNodes.at(i).first.task.name << " added to queue" << endl;
-							traversalQueue.push(visitedNodes.at(i).first);
-						}
-					}
+			//	for (size_t j = 0; j < visitedNodes.at(i).first.task.dependencies.size(); j++)
+			//	{
+			//		for (size_t k = 0; k < visitedNodes.size(); k++)
+			//		{
+			//			// If the dependent nodes have been visited
+			//			if (visitedNodes.at(i).first.task.dependencies.at(j).compare(visitedNodes.at(k).first.task.name) == 0
+			//				&& visitedNodes.at(i).first.task.dependencies.at(j).compare("-") != 0) {
+			//				// We add the node to the queue
+			//				cout << visitedNodes.at(i).first.task.name << " added to queue" << endl;
+			//				traversalQueue.push(visitedNodes.at(i).first);
+			//			}
+			//		}
 
-				}
+			//	}
 
-			}
+			//}
 		}
-	}
+	//}
 
 }
 
@@ -787,12 +778,12 @@ int main()
 	std::vector<Task> taskList = fillTasks(tasksData);
 	printTasks(taskList);
 
-	std::vector<TaskVariable> possibleCombinations = grounding(employeeList, taskList);
-	//printTaskVariables(possibleCombinations);
+	grounding(employeeList, taskList);
+	//printVariables();
 
-	possibleCombinations = mutex(possibleCombinations);
+	mutex();
 
-	DFS(taskList.size(), possibleCombinations);
+	//DFS(taskList.size(), possibleCombinations);
 
 	cout << endl;
 	cout << "*////////// Program ended //////////*" << endl;
