@@ -629,79 +629,28 @@ void mutex() {
 }
 
 // Receives the number of tasks and a list with all the possible combinations to iterate over them
-void DFS(int taskNumber, std::vector<Variable> TaskVariables) {
+void DFS(std::queue<Variable> variableQueue, std::map<DomainValue, bool> visitedNodes) {
 
 	cout << "Executing DFS algorithm" << endl;
 	cout << "------------" << endl;
 
-	/* An instance of a Variable with a Value acts as a node of the graph we travel */
+	// Queue for the solution we have 
+	std::queue<Variable> solutionQueue;
 
-	// List where we store if a node has been visited
-	std::map<DomainValue, bool> visitedNodes;
-
-	// We assign the list as not visited (false)
-	for (auto VALUE : DOMAINS)
+	while (!variableQueue.empty())
 	{
-		std::pair<DomainValue, bool> pair(VALUE, false);
-		visitedNodes.insert(pair);
+		Variable solutionVariable = variableQueue.front();
+		variableQueue.pop();
 
+		for (auto VALUE : solutionVariable.domains)
+		{
+			Variable auxVar;
+			auxVar.task = solutionVariable.task;
+			auxVar.domains.insert(VALUE);
+			variableQueue.push(auxVar);
+		}
+		DFS(variableQueue, visitedNodes);
 	}
-
-	// Queue for the TaskVariable being traversed
-	std::queue<Variable> taskQueue;
-
-	// Queue for the DomainValue being traversed
-	std::queue<DomainValue> domainQueue;
-
-	// We insert the first assignedTask of the queue and mark it as visited (true)
-	//std::pair<int, int> firstTask(TaskVariables.at(0).id, TaskVariables.at(0).domains.at(0).id);
-	//std::pair<std::pair<int, int>, bool> firstPairPair(firstTask, true);
-	taskQueue.push(TaskVariables.at(0));
-	/*domainQueue.push();
-	traversalQueue.push(firstPairPair);*/
-
-	// We check if list is empty
-	//if (traversalQueue.empty()) return;
-
-	// We initialize the traversal
-	//while (!traversalQueue.empty()) {
-
-		// Get task from queue and remove it
-		Variable node = taskQueue.front();
-		taskQueue.pop();
-		for (size_t i = 0; i < visitedNodes.size(); i++)
-		{
-			/*if (visitedNodes.at(i).first.task.name.compare(node.task.name) == 0)
-			{
-				visitedNodes.at(i).second = true;
-			}*/
-		}
-		//cout << "Traversing node: " << node.employee.name << " & " << node.task.name << endl;
-
-		// We get the nodes adjacent to the current one and add them to the queue
-		for (size_t i = 0; i < visitedNodes.size(); i++)
-		{
-			// If the Node is not the current task and has not been visited
-			//if (visitedNodes.at(i).first.task.name.compare(node.task.name) == 1 && visitedNodes.at(i).second == false) {
-
-			//	for (size_t j = 0; j < visitedNodes.at(i).first.task.dependencies.size(); j++)
-			//	{
-			//		for (size_t k = 0; k < visitedNodes.size(); k++)
-			//		{
-			//			// If the dependent nodes have been visited
-			//			if (visitedNodes.at(i).first.task.dependencies.at(j).compare(visitedNodes.at(k).first.task.name) == 0
-			//				&& visitedNodes.at(i).first.task.dependencies.at(j).compare("-") != 0) {
-			//				// We add the node to the queue
-			//				cout << visitedNodes.at(i).first.task.name << " added to queue" << endl;
-			//				traversalQueue.push(visitedNodes.at(i).first);
-			//			}
-			//		}
-
-			//	}
-
-			//}
-		}
-	//}
 
 }
 
@@ -783,7 +732,28 @@ int main()
 
 	mutex();
 
-	//DFS(taskList.size(), possibleCombinations);
+	/* An instance of a Variable with a Value acts as a node of the graph we travel */
+
+	// List where we store if a node has been visited
+	std::map<DomainValue, bool> visitedNodes;
+
+	// We assign the list as not visited (false)
+	for (auto VALUE : DOMAINS)
+	{
+		std::pair<DomainValue, bool> pair(VALUE, false);
+		visitedNodes.insert(pair);
+
+	}
+
+	// Queue for input VARIABLES
+	std::queue<Variable> variableQueue;
+
+	for (auto VARIABLE : VARIABLES)
+	{
+		variableQueue.push(VARIABLE);
+	}
+
+	DFS(variableQueue, visitedNodes);
 
 	cout << endl;
 	cout << "*////////// Program ended //////////*" << endl;
