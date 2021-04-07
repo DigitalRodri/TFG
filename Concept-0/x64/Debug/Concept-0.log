@@ -1,5 +1,6 @@
 ﻿  Concept-0.cpp
-C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(549,26): warning C4267: '=': conversion from 'size_t' to 'short', possible loss of data
-C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(604,112): warning C4018: '>=': signed/unsigned mismatch
-C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(161): warning C4715: 'Variable::getTaskDuration': not all control paths return a value
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(597,26): warning C4267: '=': conversion from 'size_t' to 'short', possible loss of data
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(653,114): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(767): warning C4715: 'getUnnassignedState': not all control paths return a value
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(164): warning C4715: 'Variable::getTaskDuration': not all control paths return a value
   Concept-0.vcxproj -> C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\x64\Debug\Concept-0.exe
