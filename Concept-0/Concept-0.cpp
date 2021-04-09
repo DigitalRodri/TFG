@@ -218,7 +218,7 @@ static std::map< pair<std::string, std::string>, vector<pair<Value*, Value*>> > 
 void writeCSV(std::string filename, std::vector<std::pair<std::string, std::vector<string>>> dataset) {
 	// Make a CSV file with one or more columns of integer values
 	// The input file (dataset) is composed of a vector that containts the columns
-	// Each column of data is represented by a pair <column string, column data (vector)> as std::pair<std::string, std::vector<int>>
+	// Each column of data is represented by a pair <column string, column data (vector)> as std::pair<std::string, std::vector<string>>
 	// Note that all columns should be the same size
 
 	// Create an output filestream object
@@ -805,6 +805,39 @@ void printStateAssignments(vector<State> stateAssignments) {
 
 }
 
+void writeStateAssignments(vector<State> stateAssignments) {
+	
+	// Vectors for the column data
+	vector<string> employeeData;
+	vector<string> taskData;
+	vector<string> dateData;
+
+	// Final vector for inserting solution into the writing CSV function
+	std::vector<std::pair<std::string, std::vector<string>>> solution;
+
+	// Collect data from solution and place it into the vectors
+	for (State state : stateAssignments)
+	{
+		employeeData.push_back(state.value.employee.name);
+		taskData.push_back(state.variable.task.name);
+
+		stringstream timeString;
+		struct std::tm hora;
+		localtime_s(&hora, &state.value.date);
+		timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
+		dateData.push_back(timeString.str());
+	}
+
+	// Insert column name and data into solution vector
+	solution.push_back(std::make_pair("Employee", employeeData));
+	solution.push_back(std::make_pair("Task", taskData));
+	solution.push_back(std::make_pair("Date", dateData));
+
+	// Call to the writing CSV function with the data
+	writeCSV("Solution.csv", solution);
+
+}
+
 // Initially receives the states with all variables unnassigned
 bool DFS(vector<State> &stateAssignments) {
 
@@ -886,7 +919,6 @@ int main()
 
 	//std::istringstream ss("");
 	//startDate = std::get_time(&t, "%Y-%b-%d %H:%M:%S");
-
 
 	cout << "Welcome to the SCRUM Scheduler, schedule is 9-17, Monday to Friday" << endl;
 	// cout << "Please introduce the initial date of the project" << endl;
@@ -977,7 +1009,8 @@ int main()
 		cout << endl;
 	}
 
-	printStateAssignments(stateAssignments);
+	// We write the solution into a CSV file
+	writeStateAssignments(stateAssignments);
 
 
 	cout << endl;
