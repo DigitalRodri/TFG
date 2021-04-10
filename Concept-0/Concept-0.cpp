@@ -154,13 +154,16 @@ public:
 	int getTaskDuration(string role) {
 		for (size_t i = 0; i < this->task.compatibilities.size(); i++)
 		{
+			//cout << "Comparing " << this->task.compatibilities.at(i) << " to " << role << endl;
 			if (this->task.compatibilities.at(i).compare(role) == 0)
 			{
+				
 				return this->task.durations.at(i);
 			}
 
-			else return 0;
+			
 		}
+		return 0;
 	}
 };
 
@@ -213,7 +216,7 @@ static std::string scrumTime;
 static std::tm startDate;
 static std::set<Variable> VARIABLES;
 static std::set<Value> DOMAINS;
-static std::map< pair<std::string, std::string>, vector<pair<Value*, Value*>> > MUTEX;
+static std::map< pair<std::string, std::string>, vector<pair<int, int>> > MUTEX;
 
 void writeCSV(std::string filename, std::vector<std::pair<std::string, std::vector<string>>> dataset) {
 	// Make a CSV file with one or more columns of integer values
@@ -394,6 +397,11 @@ void print_map(std::map< pair<std::string, std::string>, vector<pair<Value*, Val
 {
 	for (auto const& pair : m) {
 		cout << "{" << pair.first.first << " | " << pair.first.second << "}\n";
+		for (auto pais : pair.second)
+		{
+			cout << "{" << pais.first->id << " | " << pais.second->id << "}\n";
+		}
+		
 	}
 }
 
@@ -508,6 +516,7 @@ bool isDomain(Variable VARIABLE, Value VALUE) {
 	{
 		if (VALUE.employee.role.compare(VARIABLE.task.compatibilities.at(i)) == 0)
 		{
+			//cout << "Value " << VALUE.id << " is domain of " << VARIABLE.task.name << endl;
 			return true;
 		}
 	}
@@ -613,10 +622,10 @@ void mutex() {
 	cout << "------------" << endl;
 
 	int counter = 0;
-	std::pair< pair<std::string, std::string>, vector<pair<Value*, Value*>> > temporalMutexPair;
-	vector<pair<Value*, Value*>> temporalMutexValueVector;
+	std::pair< pair<std::string, std::string>, vector<pair<int, int>> > temporalMutexPair;
+	vector<pair<int, int>> temporalMutexValueVector;
 	std::pair<std::string, std::string> temporalMutexVariablePair;
-	std::pair<Value*, Value*> temporalMutexValuePair;
+	std::pair<int, int> temporalMutexValuePair;
 	Variable temporalVariable1;
 	Variable temporalVariable2;
 
@@ -635,6 +644,7 @@ void mutex() {
 			// For each value in the domain of the first task
 			for (auto VALUE1 : DOMAINS)
 			{
+				//cout << "Calculating mutex of " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
 				if (isDomain(VARIABLE1, VALUE1))
 				{
 
@@ -643,35 +653,43 @@ void mutex() {
 					{
 						if (isDomain(VARIABLE2, VALUE2))
 						{
-							//cout << "Here " << endl;
-							// We check that we are not in the same task
-							if (VARIABLE1.task.name.compare(VARIABLE2.task.name) != 0)
+
+							//cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
+							int datePlusDuration = VALUE2.date + (static_cast<unsigned __int64>(VARIABLE2.getTaskDuration(VALUE2.employee.role))) * 3600;
+		
+							// We add all combinations of the same employee at the duration of the task
+							// Duration of the task is 3600secs*hours
+							
+							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (datePlusDuration >= VALUE1.date))
 							{
-								// We add all combinations of the same employee at the duration of the task
-								// Duration of the task is 3600secs*hours
-								if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) &&
-									(VALUE1.date + (static_cast<unsigned __int64>(VARIABLE1.getTaskDuration(VALUE1.employee.role))) * 3600) >= VALUE2.date)
+								/*if (VARIABLE1.task.name.compare("Implementation") == 0)
 								{
-									temporalMutexValuePair = std::make_pair(&VALUE1, &VALUE2);
-									temporalMutexValueVector.push_back(temporalMutexValuePair);
-									counter++;
-								}
-								// We add all the combinations that have tasks that depend on the actual one and are done before it
-								else if (VARIABLE2.task.dependsOn(VARIABLE1.task.name) && VALUE1.date > VALUE2.date) {
-									temporalMutexValuePair = std::make_pair(&VALUE1, &VALUE2);
-									temporalMutexValueVector.push_back(temporalMutexValuePair);
-									counter++;
-								}
+									cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+									cout << "Date " << datePlusDuration << " is >= than " << VALUE1.date << endl;
+								}*/
+								
+								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
+								temporalMutexValueVector.push_back(temporalMutexValuePair);
+								counter++;
 							}
+							// We add all the combinations that have tasks that depend on the actual one and are done before it
+							else if (VARIABLE2.task.dependsOn(VARIABLE1.task.name) && VALUE1.date > VALUE2.date) {
+								//cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
+								temporalMutexValueVector.push_back(temporalMutexValuePair);
+								counter++;
+							}
+
 						}
 					}
-					
+
 				}
 
 			}
 			//cout << "Pair is " << temporalMutexVariablePair.first << " and " << temporalMutexVariablePair.second << endl;
 			temporalMutexPair = std::make_pair(temporalMutexVariablePair, temporalMutexValueVector);
 			MUTEX.insert(temporalMutexPair);
+			temporalMutexValueVector.clear();
 		}
 		cout << "Mutex size of " << VARIABLE1.task.name << " is " << counter << endl;
 		counter = 0;
@@ -687,17 +705,18 @@ bool isMutex(State CURRENTSTATE, vector<State> stateAssignments) {
 	// For every assigned variable, we check if its assigned value is mutex with the input state
 	for (State STATEASSIGNMENT : stateAssignments)
 	{
+		// If its assigned and we are not in the current assignment
 		if (STATEASSIGNMENT.value.id != -1 && STATEASSIGNMENT.variable.id != CURRENTSTATE.variable.id)
 		{
 
 			Value value1;
 			Value value2;
-			vector<pair<Value*, Value*>> vectorMutex;
+			vector<pair<int, int>> vectorMutex;
 
 			// If the iterator returns a pointer not to the end, there is a mutex of these pair of variables
 
-			std::map< pair<std::string, std::string>, vector<pair<Value*, Value*>> >::iterator iterator = MUTEX.find(std::make_pair(CURRENTSTATE.variable.task.name, STATEASSIGNMENT.variable.task.name));
-			cout << "Checking mutex of " << CURRENTSTATE.variable.task.name << " with " << STATEASSIGNMENT.variable.task.name << endl;
+			std::map< pair<std::string, std::string>, vector<pair<int, int>> >::iterator iterator = MUTEX.find(std::make_pair(CURRENTSTATE.variable.task.name, STATEASSIGNMENT.variable.task.name));
+			
 
 			if (iterator != MUTEX.end())
 			{
@@ -712,12 +731,14 @@ bool isMutex(State CURRENTSTATE, vector<State> stateAssignments) {
 
 			// We get the vector from the iterator
 			vectorMutex = iterator->second;
+			cout << "Checking mutex of " << iterator->first.first << " with " << iterator->first.second << endl;
 
 			// For each value of the mutex, we check if it corresponds to the values of the input States
 			for (size_t i = 0; i < vectorMutex.size(); i++)
-			{
-				if (vectorMutex.at(i).first->id == value1.id && vectorMutex.at(i).second->id == value2.id) {
-					cout << "The value is not compatible" << endl;
+			{	
+				//cout << "Mutex value " << vectorMutex.at(i).first << " and " << vectorMutex.at(i).second << endl;
+				if (vectorMutex.at(i).first == value1.id && vectorMutex.at(i).second == value2.id) {
+					cout << "Value " << value1.id << " of " << CURRENTSTATE.variable.task.name << " is not compatible with " << value2.id << " of " << STATEASSIGNMENT.variable.task.name << endl;;
 					return true;
 				}
 			}
@@ -725,7 +746,7 @@ bool isMutex(State CURRENTSTATE, vector<State> stateAssignments) {
 			cout << "Value " << value1.id << " is compatible with " << value2.id << endl;
 
 		}
-		
+
 	}
 
 	// If there hasn't been a mutex found, we return the result
@@ -739,9 +760,10 @@ bool allStatesAssigned(vector<State> stateAssignments) {
 
 	// We iterate through all of the variables and check if they are not null
 	bool allAssigned = true;
-	for (size_t i = 0; i < stateAssignments.size(); i++)
+	for (State STATE : stateAssignments)
 	{
-		if (stateAssignments.at(i).value.id == -1 || stateAssignments.at(i).value.id == NULL) {
+		if (STATE.value.id == -1) {
+			//cout << "Variable " << STATE.variable.task.name << " is not assigned" << endl;
 			allAssigned = false;
 		}
 	}
@@ -757,7 +779,7 @@ State getUnnassignedState(vector<State> stateAssignments) {
 
 	for (State STATE : stateAssignments)
 	{
-		
+
 		if (STATE.value.id == -1) {
 			cout << "Unnassigned state " << STATE.variable.task.name << " retrieved" << endl;
 			return STATE;
@@ -766,7 +788,7 @@ State getUnnassignedState(vector<State> stateAssignments) {
 
 }
 
-void pushAssignedState(State CURRENTSTATE, vector<State> &stateAssignments) {
+void pushAssignedState(State CURRENTSTATE, vector<State>& stateAssignments) {
 
 	// We iterate through the state assignments
 	for (size_t i = 0; i < stateAssignments.size(); i++)
@@ -774,14 +796,14 @@ void pushAssignedState(State CURRENTSTATE, vector<State> &stateAssignments) {
 		// If its variable coincides with the input one, we assign the value to the variable
 		if (stateAssignments.at(i).variable.id == CURRENTSTATE.variable.id)
 		{
-			//cout << "Pushing value " << CURRENTSTATE.value.id << endl;
+			cout << "Pushing value " << CURRENTSTATE.value.id << " for variable " << stateAssignments.at(i).variable.task.name << endl;
 			stateAssignments.at(i).value = CURRENTSTATE.value;
 
 		}
 	}
 }
 
-void deleteAssignedVariable(State CURRENTSTATE, vector<State> stateAssignments) {
+void deleteAssignedVariable(State CURRENTSTATE, vector<State>& stateAssignments) {
 
 	// We iterate through the state assignments
 	for (State STATEASSIGNMENT : stateAssignments)
@@ -806,11 +828,13 @@ void printStateAssignments(vector<State> stateAssignments) {
 }
 
 void writeStateAssignments(vector<State> stateAssignments) {
-	
+
 	// Vectors for the column data
 	vector<string> employeeData;
 	vector<string> taskData;
 	vector<string> dateData;
+	vector<string> durationData;
+	string durationString;
 
 	// Final vector for inserting solution into the writing CSV function
 	std::vector<std::pair<std::string, std::vector<string>>> solution;
@@ -820,6 +844,8 @@ void writeStateAssignments(vector<State> stateAssignments) {
 	{
 		employeeData.push_back(state.value.employee.name);
 		taskData.push_back(state.variable.task.name);
+		durationString = to_string(state.variable.getTaskDuration(state.value.employee.role));
+		durationData.push_back(durationString);
 
 		stringstream timeString;
 		struct std::tm hora;
@@ -832,6 +858,7 @@ void writeStateAssignments(vector<State> stateAssignments) {
 	solution.push_back(std::make_pair("Employee", employeeData));
 	solution.push_back(std::make_pair("Task", taskData));
 	solution.push_back(std::make_pair("Date", dateData));
+	solution.push_back(std::make_pair("Duration", durationData));
 
 	// Call to the writing CSV function with the data
 	writeCSV("Solution.csv", solution);
@@ -839,9 +866,9 @@ void writeStateAssignments(vector<State> stateAssignments) {
 }
 
 // Initially receives the states with all variables unnassigned
-bool DFS(vector<State> &stateAssignments) {
+bool DFS(vector<State>& stateAssignments) {
 
-	cout << "------------" << endl;
+	cout << "----" << endl;
 
 	//printStateAssignments(stateAssignments);
 
@@ -993,6 +1020,7 @@ int main()
 
 	/* DFS is started */
 	cout << "Beginning DFS" << endl;
+	cout << "------------" << endl;
 	bool DFSResult = DFS(stateAssignments);
 
 	if (DFSResult == true)
