@@ -2,7 +2,7 @@ Employee,Task,Date,Duration
 Rodrigo,Concept,2021-02-22T09:00:00,8
 Arturo,Design,2021-02-22T09:00:00,10
 Sergio,Validation,2021-02-22T09:00:00,5
-Arturo,Implementation,2021-02-23T09:00:00,20
-Arturo,Verification,2021-02-24T09:00:00,5
+Arturo,Implementation,2021-02-23T11:00:00,20
+Arturo,Verification,2021-02-25T15:00:00,5
 Rodrigo,Testing,2021-02-23T09:00:00,8
 Rodrigo,Release,2021-02-24T09:00:00,6

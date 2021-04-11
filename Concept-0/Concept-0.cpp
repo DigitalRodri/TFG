@@ -157,13 +157,54 @@ public:
 			//cout << "Comparing " << this->task.compatibilities.at(i) << " to " << role << endl;
 			if (this->task.compatibilities.at(i).compare(role) == 0)
 			{
-				
+
 				return this->task.durations.at(i);
 			}
 
-			
+
 		}
 		return 0;
+	}
+
+	time_t getTaskFinishTime(string role, time_t startTime) {
+
+		// Auxiliary variables
+		time_t finishTime = startTime + (static_cast<unsigned __int64>(getTaskDuration(role))) * 3600;
+		struct tm tmtime;
+		char printBuffer[26];
+
+		// We get the current time at 17
+		localtime_s(&tmtime, &startTime);
+		tmtime.tm_hour = 17;
+		time_t timeAt17 = mktime(&tmtime);
+
+		/*localtime_s(&tmtime, &startTime);
+		strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+		cout << "Tarea empieza: " << printBuffer << endl;*/
+
+		// If the date+duration surpasses 17, we get the duration at the next day
+		while (finishTime > timeAt17)
+		{
+			//cout << "Time is greater than 17" << endl;
+			
+			// We advance time until next day at 9 (16 hours)
+			time_t timeAt9 = timeAt17 + (static_cast<unsigned __int64>(16)) * 3600;
+			time_t remainingHours = finishTime - timeAt17;
+			finishTime = timeAt9 + remainingHours;
+
+			// We get the new finish time at 17
+			localtime_s(&tmtime, &finishTime);
+			tmtime.tm_hour = 17;
+			timeAt17 = mktime(&tmtime);
+
+		}
+
+		/*localtime_s(&tmtime, &finishTime);
+		strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+		cout << "Tarea termina: " << printBuffer << endl;*/
+
+		return finishTime;
+
 	}
 };
 
@@ -401,7 +442,7 @@ void print_map(std::map< pair<std::string, std::string>, vector<pair<Value*, Val
 		{
 			cout << "{" << pais.first->id << " | " << pais.second->id << "}\n";
 		}
-		
+
 	}
 }
 
@@ -655,19 +696,20 @@ void mutex() {
 						{
 
 							//cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
-							int datePlusDuration = VALUE2.date + (static_cast<unsigned __int64>(VARIABLE2.getTaskDuration(VALUE2.employee.role))) * 3600;
-		
+
+							int taskFinishTime = VARIABLE2.getTaskFinishTime(VALUE2.employee.role, VALUE2.date);
+
 							// We add all combinations of the same employee at the duration of the task
 							// Duration of the task is 3600secs*hours
-							
-							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (datePlusDuration >= VALUE1.date))
+
+							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (taskFinishTime > VALUE1.date))
 							{
 								/*if (VARIABLE1.task.name.compare("Implementation") == 0)
 								{
 									cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
 									cout << "Date " << datePlusDuration << " is >= than " << VALUE1.date << endl;
 								}*/
-								
+
 								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
 								temporalMutexValueVector.push_back(temporalMutexValuePair);
 								counter++;
@@ -716,7 +758,7 @@ bool isMutex(State CURRENTSTATE, vector<State> stateAssignments) {
 			// If the iterator returns a pointer not to the end, there is a mutex of these pair of variables
 
 			std::map< pair<std::string, std::string>, vector<pair<int, int>> >::iterator iterator = MUTEX.find(std::make_pair(CURRENTSTATE.variable.task.name, STATEASSIGNMENT.variable.task.name));
-			
+
 
 			if (iterator != MUTEX.end())
 			{
@@ -735,7 +777,7 @@ bool isMutex(State CURRENTSTATE, vector<State> stateAssignments) {
 
 			// For each value of the mutex, we check if it corresponds to the values of the input States
 			for (size_t i = 0; i < vectorMutex.size(); i++)
-			{	
+			{
 				//cout << "Mutex value " << vectorMutex.at(i).first << " and " << vectorMutex.at(i).second << endl;
 				if (vectorMutex.at(i).first == value1.id && vectorMutex.at(i).second == value2.id) {
 					cout << "Value " << value1.id << " of " << CURRENTSTATE.variable.task.name << " is not compatible with " << value2.id << " of " << STATEASSIGNMENT.variable.task.name << endl;;
