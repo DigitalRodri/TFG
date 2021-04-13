@@ -1,7 +1,3 @@
 ﻿  Concept-0.cpp
-C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(181,1): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(746,26): warning C4267: '=': conversion from 'size_t' to 'short', possible loss of data
-C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(799,28): warning C4244: 'initializing': conversion from 'time_t' to 'int', possible loss of data
-C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(983,9): warning C4101: 'finishingDate': unreferenced local variable
 C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(933): warning C4715: 'getUnnassignedState': not all control paths return a value
   Concept-0.vcxproj -> C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\x64\Debug\Concept-0.exe

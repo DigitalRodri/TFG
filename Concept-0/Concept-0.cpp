@@ -14,10 +14,11 @@
 using namespace std;
 
 // Static variables not dependant on classes
-static size_t labourDays = 5;
-static size_t startHour = 9;
-static size_t finishHour = 17;
-static size_t numberOfWeeks = 2;
+static int labourDays = 5;
+static int startHour = 9;
+static int finishHour = 17;
+static int numberOfWeeks = 2;
+static int hoursPerDay = finishHour - startHour;
 static std::string lunchTime;
 static std::string scrumTime;
 static std::tm startDate;
@@ -141,7 +142,7 @@ public:
 
 class Variable {
 public:
-	short int id = 0;
+	size_t id = 0;
 	Task task;
 
 public:
@@ -178,9 +179,8 @@ public:
 	time_t getTaskFinishTime(string role, time_t startTime) {
 
 		// Auxiliary variables
-		int hoursPerDay = finishHour - startHour;
 		int taskDuration = getTaskDuration(role);
-		int labourDays = taskDuration/hoursPerDay;
+		size_t labourDays = taskDuration/hoursPerDay;
 		int remainder = taskDuration%hoursPerDay;
 		time_t timePlusDays = startTime;
 		time_t timeAt9;
@@ -695,7 +695,7 @@ void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 			for (size_t k = 0; k < labourDays; k++) {
 
 				// For each hour of a day
-				for (size_t l = 0; l < (finishHour - startHour); l++) {
+				for (size_t l = 0; l < hoursPerDay; l++) {
 
 
 					// We generate a combination of all of the factors
@@ -796,7 +796,7 @@ void mutex() {
 
 							//cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
 
-							int task2FinishTime = VARIABLE2.getTaskFinishTime(VALUE2.employee.role, VALUE2.date);
+							time_t task2FinishTime = VARIABLE2.getTaskFinishTime(VALUE2.employee.role, VALUE2.date);
 
 							// We add all combinations of the same employee at the duration of the task
 							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date <= VALUE1.date) && (VALUE1.date < task2FinishTime))
@@ -979,8 +979,7 @@ void writeStateAssignments(vector<State> stateAssignments) {
 	vector<string> dateData;
 	vector<string> durationData;
 	string durationString;
-	time_t lastStateDate;
-	time_t finishingDate;
+	time_t lastStateDate = 00000;
 
 	// Final vector for inserting solution into the writing CSV function
 	std::vector<std::pair<std::string, std::vector<string>>> solution;
