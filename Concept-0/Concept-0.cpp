@@ -191,10 +191,11 @@ public:
 		struct tm tmtime;
 		char printBuffer[26];
 
-		localtime_s(&tmtime, &startTime);
-		strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
-		/*if (task.name.compare("Verification") == 0)
+		
+		/*if (task.name.compare("Implementation") == 0 && role.compare("CTO")==0)
 		{
+			localtime_s(&tmtime, &startTime);
+			strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
 			cout << "Task starts at: " << printBuffer << endl;
 		}*/
 
@@ -203,18 +204,22 @@ public:
 		if (remainder != 0)
 		{
 			timePlusDays = timePlusDays + labourDays* (static_cast<unsigned __int64>(24))*3600;
-			localtime_s(&tmtime, &timePlusDays);
-			strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
-			/*if (task.name.compare("Design") == 0)
+			
+			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
 			{
-				cout << "Initial finish time without remainder: " << printBuffer << endl;
+				localtime_s(&tmtime, &timePlusDays);
+				strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+				cout << "Remainder is " << remainder << endl;
+				cout << "LabourDays is " << labourDays << endl;
+				cout << "Initial finish time without remainder: " << printBuffer << " remainder is " << remainder << endl;
 			}*/
 			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(remainder))*3600;
 
-			localtime_s(&tmtime, &timePlusDays);
-			strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
-			/*if (task.name.compare("Verification") == 0)
+			
+			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
 			{
+				localtime_s(&tmtime, &timePlusDays);
+				strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
 				cout << "Initial finish time with remainder: " << printBuffer << endl;
 			}*/
 		}
@@ -223,10 +228,11 @@ public:
 		{
 			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(taskDuration))*3600;
 
-			localtime_s(&tmtime, &timePlusDays);
-			strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+			
 			/*if (task.name.compare("Verification") == 0)
 			{
+				localtime_s(&tmtime, &timePlusDays);
+				strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
 				cout << "Initial finish time with task duration: " << printBuffer << endl;
 			}*/
 			
@@ -234,8 +240,8 @@ public:
 
 		finishTime = timePlusDays;
 
-		// We get the start date at 17
-		localtime_s(&tmtime, &startTime);
+		// We get the time at 17
+		localtime_s(&tmtime, &timePlusDays);
 		tmtime.tm_hour = 17;
 		timeAt17 = mktime(&tmtime);
 		time_t remainingHours = timePlusDays - timeAt17;
@@ -251,6 +257,13 @@ public:
 			tmtime.tm_hour = 9;
 			timeAt9 = mktime(&tmtime);
 			finishTime = timeAt9 + remainingHours;
+
+			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+			{
+				localtime_s(&tmtime, &finishTime);
+				strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+				cout << "1. Time advanced to: " << printBuffer << endl;
+			}*/
 		}
 		// If we are in the next day before labour, we move to 9 + remainding hours
 		else if (tmtime.tm_hour < startHour)
@@ -258,25 +271,40 @@ public:
 			tmtime.tm_hour = 9;
 			timeAt9 = mktime(&tmtime);
 			finishTime = timeAt9 + remainingHours;
+
+			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+			{
+				localtime_s(&tmtime, &finishTime);
+				strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+				cout << "2. Time advanced to: " << printBuffer << endl;
+			}*/
 		}
 		
 		// If we are in Saturday or Sunday, we advance until monday at 9
 		// Saturday
 		if (tmtime.tm_wday == 6)
 		{
-			//cout << "Advancing time from Saturday to Monday" << endl;
+			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+			{
+				cout << "Advancing time from Saturday to Monday" << endl;
+			}*/
+			
 			finishTime = finishTime + (static_cast<unsigned __int64>(48))*3600;
 		}
 		// Sunday
 		else if (tmtime.tm_wday == 0)
 		{
-			//cout << "Advancing time Sunday to Monday" << endl;
+			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+			{
+				cout << "Advancing time Sunday to Monday" << endl;
+			}*/
+			
 			finishTime = finishTime + (static_cast<unsigned __int64>(24))*3600;
 		}
 
 		localtime_s(&tmtime, &finishTime);
 		strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
-		/*if (task.name.compare("Verification") == 0)
+		/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
 		{
 			cout << "Final finish time: " << printBuffer << endl;
 		}*/
@@ -694,7 +722,7 @@ void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 			/*cout << "------------" << endl;
 			cout << "Week ended" << endl;
 			cout << "------------" << endl;*/
-			temporalDate += 176400;
+			temporalDate += 172800;
 
 		}
 		/*cout << "------------" << endl;
@@ -771,11 +799,11 @@ void mutex() {
 							int task2FinishTime = VARIABLE2.getTaskFinishTime(VALUE2.employee.role, VALUE2.date);
 
 							// We add all combinations of the same employee at the duration of the task
-							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (task2FinishTime > VALUE1.date))
+							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date <= VALUE1.date) && (VALUE1.date < task2FinishTime))
 							{
-								if (VARIABLE1.task.name.compare("Verification") == 0)
+								if (VARIABLE1.task.name.compare("Testing") == 0)
 								{
-									cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+									//cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
 									//cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
 								}
 
@@ -784,8 +812,13 @@ void mutex() {
 								counter++;
 							}
 							// We add all the combinations that have tasks that depend on the actual one and are done before it
-							else if (VARIABLE1.task.dependsOn(VARIABLE2.task.name) && (VALUE1.date <= task2FinishTime)) {
-								//cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+							else if (VARIABLE1.task.dependsOn(VARIABLE2.task.name) && (VALUE1.date < task2FinishTime)) {
+								if (VARIABLE1.task.name.compare("Testing") == 0)
+								{
+									//cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+									//cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
+								}
+								
 								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
 								temporalMutexValueVector.push_back(temporalMutexValuePair);
 								counter++;
@@ -946,6 +979,8 @@ void writeStateAssignments(vector<State> stateAssignments) {
 	vector<string> dateData;
 	vector<string> durationData;
 	string durationString;
+	time_t lastStateDate;
+	time_t finishingDate;
 
 	// Final vector for inserting solution into the writing CSV function
 	std::vector<std::pair<std::string, std::vector<string>>> solution;
@@ -963,7 +998,18 @@ void writeStateAssignments(vector<State> stateAssignments) {
 		localtime_s(&hora, &state.value.date);
 		timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
 		dateData.push_back(timeString.str());
+		lastStateDate = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
 	}
+
+	// We add a final state for the end of the project
+	employeeData.push_back("-");
+	taskData.push_back("Finish");
+	durationData.push_back("-");
+	stringstream timeString;
+	struct std::tm hora;
+	localtime_s(&hora, &lastStateDate);
+	timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
+	dateData.push_back(timeString.str());
 
 	// Insert column name and data into solution vector
 	solution.push_back(std::make_pair("Employee", employeeData));
