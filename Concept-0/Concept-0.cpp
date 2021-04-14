@@ -76,27 +76,21 @@ public:
 class Employee {
 public:
 	std::string name;
-	std::string role;
-	std::vector<std::string> schedule;
+	std::string role;;
 
 public:
 	Employee() {
 	}
 
-	Employee(std::string name, std::string role, std::vector<std::string> schedule) {
+	Employee(std::string name, std::string role) {
 		this->name = name;
 		this->role = role;
-		this->schedule = schedule;
 	}
 
 	void printEmployee() {
 
 		std::cout << this->name << ' ';
 		std::cout << this->role << ' ';
-		for (size_t j = 0; j < this->schedule.size(); j++)
-		{
-			std::cout << this->schedule.at(j) << ' ';
-		}
 		cout << endl;
 
 	}
@@ -104,10 +98,6 @@ public:
 	void setNull() {
 		this->name = "";
 		this->role = "";
-		for (string schedule : schedule)
-		{
-			schedule = "";
-		}
 
 	}
 };
@@ -180,7 +170,7 @@ public:
 
 		// Auxiliary variables
 		int taskDuration = getTaskDuration(role);
-		size_t labourDays = taskDuration/hoursPerDay;
+		size_t taskDays = taskDuration/hoursPerDay;
 		int remainder = taskDuration%hoursPerDay;
 		time_t timePlusDays = startTime;
 		time_t timeAt9;
@@ -203,14 +193,14 @@ public:
 		// If the task spans more than one labour day, we advance the days directly and add the remaining hours
 		if (remainder != 0)
 		{
-			timePlusDays = timePlusDays + labourDays* (static_cast<unsigned __int64>(24))*3600;
+			timePlusDays = timePlusDays + taskDays * (static_cast<unsigned __int64>(24))*3600;
 			
 			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
 			{
 				localtime_s(&tmtime, &timePlusDays);
 				strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
 				cout << "Remainder is " << remainder << endl;
-				cout << "LabourDays is " << labourDays << endl;
+				cout << "taskDays is " << taskDays << endl;
 				cout << "Initial finish time without remainder: " << printBuffer << " remainder is " << remainder << endl;
 			}*/
 			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(remainder))*3600;
@@ -317,7 +307,6 @@ public:
 
 class State {
 public:
-	short int id = 0;
 	Variable variable;
 	Value value;
 
@@ -325,15 +314,14 @@ public:
 	State() {
 	}
 
-	State(int id, Variable variable, Value value) {
-		this->id = id;
+	State(Variable variable, Value value) {
 		this->variable = variable;
 		this->value = value;
 	}
 
 	void printState() const {
 
-		std::cout << "--- " << this->variable.task.name << "-" << this->value.employee.name << "-" << this->value.date << "-" << this->id << " ---" << endl;
+		std::cout << "--- " << this->variable.task.name << "-" << this->value.employee.name << "-" << this->value.date << " ---" << endl;
 
 		cout << endl;
 	}
@@ -572,13 +560,6 @@ std::vector<Employee> fillEmployees(std::vector<std::pair<std::string, std::vect
 				// If the object is already in the list we fill its values
 			case 1:
 				employeeList.at(j).role = CSV.at(i).second.at(j);
-				break;
-			case 2:
-				tokenStream.str(CSV.at(i).second.at(j));
-				while (std::getline(tokenStream, segment, delimiter))
-				{
-					employeeList.at(j).schedule.push_back(segment);
-				}
 				tokenStream.clear();
 				break;
 			}
@@ -971,7 +952,7 @@ void printStateAssignments(vector<State> stateAssignments) {
 
 }
 
-void writeStateAssignments(vector<State> stateAssignments) {
+void writeSolution(vector<State> stateAssignments) {
 
 	// Vectors for the column data
 	vector<string> employeeData;
@@ -1080,7 +1061,6 @@ vector<State> createStateVector() {
 	// For each variable, we push it into the vector with unassigned value (-1)
 	for (Variable VARIABLE : VARIABLES)
 	{
-		auxState.id = counter;
 		auxState.variable = VARIABLE;
 		auxState.value.id = -1;
 		stateAssignments.push_back(auxState);
@@ -1118,9 +1098,9 @@ int main()
 	Task Task2("BackEnd", std::vector<int>{10, 12, 10}, std::vector<std::string>{"CTO", "CTO", "CPO"}, std::vector<std::string>{"-"});
 	Task Task3("Marketing", std::vector<int>{8, 4}, std::vector<std::string>{"Designer", "CPO"}, std::vector<std::string>{"UI", "BackEnd"});
 
-	Employee Employee1("Rodrigo", "CEO", std::vector<std::string>{"9:00-17:00", "9:00-15:00"});
-	Employee Employee2("Arturo", "CTO", std::vector<std::string>{"9:00-17:00", "9:00-15:00"});
-	Employee Employee3("Sergio", "CFO", std::vector<std::string>{"9:00-17:00", "9:00-15:00"});
+	Employee Employee1("Rodrigo", "CEO");
+	Employee Employee2("Arturo", "CTO");
+	Employee Employee3("Sergio", "CFO");
 
 	/* Writing CSV test */
 
@@ -1139,7 +1119,7 @@ int main()
 
 	// Read both CSVs
 	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("employees.csv");
-	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks3.csv");
 
 	// We print both CSVs
 	//cout << "***Printing employee Data***" << endl;
@@ -1195,7 +1175,7 @@ int main()
 	}
 
 	// We write the solution into a CSV file
-	writeStateAssignments(stateAssignments);
+	writeSolution(stateAssignments);
 
 
 	cout << endl;
