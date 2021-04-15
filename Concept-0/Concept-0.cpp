@@ -678,21 +678,25 @@ void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 				// For each hour of a day
 				for (size_t l = 0; l < hoursPerDay; l++) {
 
-
-					// We generate a combination of all of the factors
-					temporalDomain.employee = EMPLOYEE;
 					struct std::tm hora;
 					localtime_s(&hora, &temporalDate);
-					temporalDomain.date = temporalDate;
-					temporalDomain.id = iterations;
 
-					//cout << "Day: " << hora.tm_mday << endl;
-					//cout << "Hour: " << hora.tm_hour << endl;
+					// If its not the SCRUM time, we generate the combination
+					if (hora.tm_hour != scrumTime)
+					{
+						// We generate a combination of all of the factors
+						temporalDomain.employee = EMPLOYEE;
+						temporalDomain.date = temporalDate;
+						temporalDomain.id = iterations;
 
-					DOMAINS.insert(temporalDomain);
+						//cout << "Day: " << hora.tm_mday << endl;
+						//cout << "Hour: " << hora.tm_hour << endl;
 
+						DOMAINS.insert(temporalDomain);
+
+						iterations++;
+					}
 					temporalDate += 3600;
-					iterations++;
 
 				}
 				/*cout << "------------" << endl;
