@@ -1,7 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <ProjectOutputs>C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\x64\Debug\Concept-0.exe</ProjectOutputs>
-  <ContentFiles></ContentFiles>
-  <SatelliteDlls></SatelliteDlls>
-  <NonRecipeFileRefs></NonRecipeFileRefs>
+  <ProjectOutputs>
+    <ProjectOutput>
+      <FullPath>C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\x64\Debug\Concept-0.exe</FullPath>
+    </ProjectOutput>
+  </ProjectOutputs>
+  <ContentFiles />
+  <SatelliteDlls />
+  <NonRecipeFileRefs />
 </Project>

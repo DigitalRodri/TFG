@@ -20,7 +20,7 @@ static int finishHour = 17;
 static int numberOfWeeks = 2;
 static int hoursPerDay = finishHour - startHour;
 static std::string lunchTime;
-static std::string scrumTime;
+static int scrumTime = 11;
 static std::tm startDate;
 
 class Task {
@@ -173,8 +173,8 @@ public:
 		size_t taskDays = taskDuration/hoursPerDay;
 		int remainder = taskDuration%hoursPerDay;
 		time_t timePlusDays = startTime;
-		time_t timeAt9;
-		time_t timeAt17;
+		time_t timeAtStart;
+		time_t timeAtFinish;
 		time_t finishTime;
 
 		// For printing
@@ -230,23 +230,23 @@ public:
 
 		finishTime = timePlusDays;
 
-		// We get the time at 17
+		// We get the time at the finish hour
 		localtime_s(&tmtime, &timePlusDays);
-		tmtime.tm_hour = 17;
-		timeAt17 = mktime(&tmtime);
-		time_t remainingHours = timePlusDays - timeAt17;
+		tmtime.tm_hour = finishHour;
+		timeAtFinish = mktime(&tmtime);
+		time_t remainingHours = timePlusDays - timeAtFinish;
 
 		// We check if we are out of labour hours and move to the next day at the start hour + remaining hours
 		localtime_s(&tmtime, &timePlusDays);
 
-		// If we are still in the same day, we move to the next day at 9 + remaining hours
+		// If we are still in the same day, we move to the next day at the start time + remaining hours
 		if (tmtime.tm_hour > finishHour)
 		{
 			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(24))*3600;
 			localtime_s(&tmtime, &timePlusDays);
-			tmtime.tm_hour = 9;
-			timeAt9 = mktime(&tmtime);
-			finishTime = timeAt9 + remainingHours;
+			tmtime.tm_hour = startHour;
+			timeAtStart = mktime(&tmtime);
+			finishTime = timeAtStart + remainingHours;
 
 			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
 			{
@@ -255,12 +255,12 @@ public:
 				cout << "1. Time advanced to: " << printBuffer << endl;
 			}*/
 		}
-		// If we are in the next day before labour, we move to 9 + remainding hours
+		// If we are in the next day before labour, we move to the start time + remainding hours
 		else if (tmtime.tm_hour < startHour)
 		{
-			tmtime.tm_hour = 9;
-			timeAt9 = mktime(&tmtime);
-			finishTime = timeAt9 + remainingHours;
+			tmtime.tm_hour = startHour;
+			timeAtStart = mktime(&tmtime);
+			finishTime = timeAtStart + remainingHours;
 
 			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
 			{
@@ -270,7 +270,7 @@ public:
 			}*/
 		}
 		
-		// If we are in Saturday or Sunday, we advance until monday at 9
+		// If we are in Saturday or Sunday, we advance until monday at the start hour
 		// Saturday
 		if (tmtime.tm_wday == 6)
 		{
