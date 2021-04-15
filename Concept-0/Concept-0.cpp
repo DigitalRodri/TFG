@@ -22,6 +22,8 @@ static int hoursPerDay = finishHour - startHour;
 static std::string lunchTime;
 static int scrumTime = 11;
 static std::tm startDate;
+static std::tm finishDate;
+
 
 class Task {
 public:
@@ -139,7 +141,7 @@ public:
 	Variable() {
 	}
 
-	Variable(int id, Task task, Employee employee) {
+	Variable(int id, Task task) {
 		this->id = id;
 		this->task = task;
 	}
@@ -170,8 +172,8 @@ public:
 
 		// Auxiliary variables
 		int taskDuration = getTaskDuration(role);
-		size_t taskDays = taskDuration/hoursPerDay;
-		int remainder = taskDuration%hoursPerDay;
+		size_t taskDays = taskDuration / hoursPerDay;
+		int remainder = taskDuration % hoursPerDay;
 		time_t timePlusDays = startTime;
 		time_t timeAtStart;
 		time_t timeAtFinish;
@@ -181,7 +183,7 @@ public:
 		struct tm tmtime;
 		char printBuffer[26];
 
-		
+
 		/*if (task.name.compare("Implementation") == 0 && role.compare("CTO")==0)
 		{
 			localtime_s(&tmtime, &startTime);
@@ -193,8 +195,8 @@ public:
 		// If the task spans more than one labour day, we advance the days directly and add the remaining hours
 		if (remainder != 0)
 		{
-			timePlusDays = timePlusDays + taskDays * (static_cast<unsigned __int64>(24))*3600;
-			
+			timePlusDays = timePlusDays + taskDays * (static_cast<unsigned __int64>(24)) * 3600;
+
 			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
 			{
 				localtime_s(&tmtime, &timePlusDays);
@@ -203,9 +205,9 @@ public:
 				cout << "taskDays is " << taskDays << endl;
 				cout << "Initial finish time without remainder: " << printBuffer << " remainder is " << remainder << endl;
 			}*/
-			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(remainder))*3600;
+			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(remainder)) * 3600;
 
-			
+
 			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
 			{
 				localtime_s(&tmtime, &timePlusDays);
@@ -216,16 +218,16 @@ public:
 		// If the task doesnt span more than a day, we add the original duration directly
 		else
 		{
-			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(taskDuration))*3600;
+			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(taskDuration)) * 3600;
 
-			
+
 			/*if (task.name.compare("Verification") == 0)
 			{
 				localtime_s(&tmtime, &timePlusDays);
 				strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
 				cout << "Initial finish time with task duration: " << printBuffer << endl;
 			}*/
-			
+
 		}
 
 		finishTime = timePlusDays;
@@ -242,7 +244,7 @@ public:
 		// If we are still in the same day, we move to the next day at the start time + remaining hours
 		if (tmtime.tm_hour > finishHour)
 		{
-			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(24))*3600;
+			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(24)) * 3600;
 			localtime_s(&tmtime, &timePlusDays);
 			tmtime.tm_hour = startHour;
 			timeAtStart = mktime(&tmtime);
@@ -269,7 +271,7 @@ public:
 				cout << "2. Time advanced to: " << printBuffer << endl;
 			}*/
 		}
-		
+
 		// If we are in Saturday or Sunday, we advance until monday at the start hour
 		// Saturday
 		if (tmtime.tm_wday == 6)
@@ -278,8 +280,8 @@ public:
 			{
 				cout << "Advancing time from Saturday to Monday" << endl;
 			}*/
-			
-			finishTime = finishTime + (static_cast<unsigned __int64>(48))*3600;
+
+			finishTime = finishTime + (static_cast<unsigned __int64>(48)) * 3600;
 		}
 		// Sunday
 		else if (tmtime.tm_wday == 0)
@@ -288,8 +290,8 @@ public:
 			{
 				cout << "Advancing time Sunday to Monday" << endl;
 			}*/
-			
-			finishTime = finishTime + (static_cast<unsigned __int64>(24))*3600;
+
+			finishTime = finishTime + (static_cast<unsigned __int64>(24)) * 3600;
 		}
 
 		localtime_s(&tmtime, &finishTime);
@@ -681,8 +683,8 @@ void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 					struct std::tm hora;
 					localtime_s(&hora, &temporalDate);
 
-					// If its not the SCRUM time, we generate the combination
-					if (hora.tm_hour != scrumTime)
+					// If there is SCRUM time and its not that time, we generate the combination
+					if ((scrumTime != NULL) && (hora.tm_hour != scrumTime))
 					{
 						// We generate a combination of all of the factors
 						temporalDomain.employee = EMPLOYEE;
@@ -803,7 +805,7 @@ void mutex() {
 									//cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
 									//cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
 								}
-								
+
 								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
 								temporalMutexValueVector.push_back(temporalMutexValuePair);
 								counter++;
@@ -958,6 +960,9 @@ void printStateAssignments(vector<State> stateAssignments) {
 
 void writeSolution(vector<State> stateAssignments) {
 
+	cout << "Exporting solution" << endl;
+	cout << "------------" << endl;
+
 	// Vectors for the column data
 	vector<string> employeeData;
 	vector<string> taskData;
@@ -982,18 +987,35 @@ void writeSolution(vector<State> stateAssignments) {
 		localtime_s(&hora, &state.value.date);
 		timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
 		dateData.push_back(timeString.str());
-		lastStateDate = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+
+		// If there was no SCRUM implementation, we make the calculation of the finish Date
+		if (scrumTime == -1)
+		{
+			lastStateDate = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+		}
+
 	}
+
+	
+
 
 	// We add a final state for the end of the project
 	employeeData.push_back("-");
 	taskData.push_back("Finish");
 	durationData.push_back("-");
 	stringstream timeString;
-	struct std::tm hora;
-	localtime_s(&hora, &lastStateDate);
-	timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
+
+	// If there is a SCRUM implementation, we take the value from the static variable
+	if (scrumTime != -1) {
+		timeString << std::put_time(&finishDate, "%Y-%m-%dT%H:%M:%S");
+	}
+	else {
+		struct std::tm hora;
+		localtime_s(&hora, &lastStateDate);
+		timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
+	}
 	dateData.push_back(timeString.str());
+	
 
 	// Insert column name and data into solution vector
 	solution.push_back(std::make_pair("Employee", employeeData));
@@ -1075,8 +1097,71 @@ vector<State> createStateVector() {
 	return stateAssignments;
 }
 
+vector<State> insertSCRUM(vector<State>& stateAssignments) {
+
+	cout << "Inserting SCRUM dailies" << endl;
+	cout << "------------" << endl;
+
+	// We get the finishing date
+	for (State state : stateAssignments)
+	{
+		time_t tempDate;
+		tempDate = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+		localtime_s(&finishDate, &tempDate);
+	}
+
+	// We copy the static variables into local copies
+	time_t localStartDate = mktime(&startDate);
+	time_t localFinishDate = mktime(&finishDate);
+
+	// We initialize all the values of the SCRUM task except the date
+	Task tempTask;
+	tempTask.name = "Daily SCRUM";
+	tempTask.compatibilities = { "DAILY" };
+	tempTask.durations = { 1 };
+	Variable tempVariable(-2, tempTask);
+	Employee tempEmployee("All employees", "DAILY");
+	Value tempValue(-2, tempEmployee, 00000);
+	State tempState(tempVariable, tempValue);
+	time_t tempTime = 00000;
+
+	// We initialize the date value to the SCRUM time
+	struct std::tm time;
+	localtime_s(&time, &localStartDate);
+	time.tm_hour = scrumTime;
+	localStartDate = mktime(&time);
+	// We create as many states as days from the beginning to the end of the project
+	// In each of these states, we set the value as SCRUM at the designed time
+	while (localFinishDate > localStartDate)
+	{
+		// We assign the time and insert the state into the solution vector
+		tempState.value.date = mktime(&time);
+		stateAssignments.push_back(tempState);
+
+		// We advance 24h
+		localStartDate = localStartDate + (static_cast<unsigned __int64>(24)) * 3600;
+
+		// We assign the new time to the tm variable
+		localtime_s(&time, &localStartDate);
+
+		// If we are in Saturday, we advance until monday
+		if (time.tm_wday == 6)
+		{
+			localStartDate = localStartDate + (static_cast<unsigned __int64>(48)) * 3600;
+		}
+
+		// We assign the new time to the tm variable
+		localtime_s(&time, &localStartDate);
+
+	}
+	
+	// We return the solution with the added states
+	return stateAssignments;
+}
+
 int main()
 {
+
 	startDate = {};
 	std::locale mylocale("");
 	//std::istringstream ss("2021-02-22T09:00:00Z");
@@ -1177,6 +1262,9 @@ int main()
 		cout << "Not enough time to finish the project" << endl;
 		cout << endl;
 	}
+
+	// We insert the SCRUM dailies into the solution
+	stateAssignments = insertSCRUM(stateAssignments);
 
 	// We write the solution into a CSV file
 	writeSolution(stateAssignments);

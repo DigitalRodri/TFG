@@ -1,15 +1,22 @@
 Employee,Task,Date,Duration
 Rodrigo,Concept,2021-02-22T09:00:00,8
 Rodrigo,Environmental Design,2021-02-23T09:00:00,10
-Rodrigo,Character Design,2021-02-24T11:00:00,7
-Rodrigo,Level Design,2021-02-25T10:00:00,15
+Rodrigo,Character Design,2021-02-24T12:00:00,7
+Rodrigo,Level Design,2021-02-25T12:00:00,15
 Sergio,Music Aligment,2021-02-23T09:00:00,14
 Sergio,Music Late Motifs,2021-02-24T15:00:00,10
 Arturo,Combat Programming,2021-02-23T09:00:00,10
-Arturo,World Programming,2021-02-24T11:00:00,7
-Arturo,Inventory Programming,2021-02-25T10:00:00,6
+Arturo,World Programming,2021-02-24T12:00:00,7
+Arturo,Inventory Programming,2021-02-25T12:00:00,6
 Sergio,Music Testing,2021-02-26T09:00:00,4
-Arturo,Programming Testing,2021-02-25T16:00:00,8
-Rodrigo,Design Testing,2021-03-01T09:00:00,6
-Rodrigo,Release,2021-03-01T15:00:00,2
--,Finish,2021-03-01T17:00:00,-
+Arturo,Programming Testing,2021-02-26T10:00:00,8
+Rodrigo,Design Testing,2021-03-01T12:00:00,6
+Rodrigo,Release,2021-03-02T10:00:00,2
+All employees,Daily SCRUM,2021-02-22T11:00:00,1
+All employees,Daily SCRUM,2021-02-23T11:00:00,1
+All employees,Daily SCRUM,2021-02-24T11:00:00,1
+All employees,Daily SCRUM,2021-02-25T11:00:00,1
+All employees,Daily SCRUM,2021-02-26T11:00:00,1
+All employees,Daily SCRUM,2021-03-01T11:00:00,1
+All employees,Daily SCRUM,2021-03-02T11:00:00,1
+-,Finish,2021-03-02T12:00:00,-
