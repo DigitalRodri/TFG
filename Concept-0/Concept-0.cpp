@@ -179,34 +179,55 @@ public:
 		time_t timeAtFinish;
 		time_t finishTime;
 
-		// For printing
+		// For printing and gettint specific measurements
 		struct tm tmtime;
+		struct tm tmtimeSCRUM;
 		char printBuffer[26];
 
 
-		/*if (task.name.compare("Implementation") == 0 && role.compare("CTO")==0)
+		/*if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
 		{
 			localtime_s(&tmtime, &startTime);
 			strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
-			cout << "Task starts at: " << printBuffer << endl;
+			cout << "Task starts at: " << printBuffer << " with duration " << taskDuration << endl;
 		}*/
 
 
 		// If the task spans more than one labour day, we advance the days directly and add the remaining hours
-		if (remainder != 0)
+		if (taskDays != 0)
 		{
 			timePlusDays = timePlusDays + taskDays * (static_cast<unsigned __int64>(24)) * 3600;
 
-			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+			// If SCRUM is enabled, we add as many hours as days we have advanced
+			if (scrumTime != -1)
+			{
+				/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+				{
+					cout << "Added " << taskDays << " hour(s) and days" << endl;
+				}*/
+				timePlusDays = timePlusDays + taskDays * 3600;
+			}
+
+			localtime_s(&tmtime, &timePlusDays);
+			if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
 			{
 				localtime_s(&tmtime, &timePlusDays);
 				strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
 				cout << "Remainder is " << remainder << endl;
 				cout << "taskDays is " << taskDays << endl;
 				cout << "Initial finish time without remainder: " << printBuffer << " remainder is " << remainder << endl;
-			}*/
+			}
+
+			// We add the remainder hours
 			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(remainder)) * 3600;
 
+			localtime_s(&tmtimeSCRUM, &timePlusDays);
+
+			// If we have crossed the daily scrum, we add an hour to the total time
+			if (tmtime.tm_hour <= scrumTime && tmtimeSCRUM.tm_hour > scrumTime)
+			{
+				timePlusDays = timePlusDays + 3600;
+			}
 
 			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
 			{
@@ -218,10 +239,17 @@ public:
 		// If the task doesnt span more than a day, we add the original duration directly
 		else
 		{
+			localtime_s(&tmtime, &timePlusDays);
 			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(taskDuration)) * 3600;
+			localtime_s(&tmtimeSCRUM, &timePlusDays);
 
+			// If we have crossed the daily scrum, we add an hour to the total time
+			if ((tmtime.tm_hour <= scrumTime) && (tmtimeSCRUM.tm_hour > scrumTime))
+			{
+				timePlusDays = timePlusDays + 3600;
+			}
 
-			/*if (task.name.compare("Verification") == 0)
+			/*if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
 			{
 				localtime_s(&tmtime, &timePlusDays);
 				strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
@@ -230,25 +258,71 @@ public:
 
 		}
 
+		// We place the tmtime variable back to the last calculation we made
+		localtime_s(&tmtime, &timePlusDays);
+
+		// If we are in Saturday or Sunday, we advance until monday
+		// Saturday
+		if (tmtime.tm_wday == 6)
+		{
+			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+			{
+				cout << "Advancing time from Saturday to Monday" << endl;
+			}*/
+
+			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(48)) * 3600;
+		}
+		// Sunday
+		else if (tmtime.tm_wday == 0)
+		{
+			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+			{
+				cout << "Advancing time Sunday to Monday" << endl;
+			}*/
+
+			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(24)) * 3600;
+		}
+
 		finishTime = timePlusDays;
 
-		// We get the time at the finish hour
+		// We get the time at the schedule finish hour to calculate the remaining hours of the task in case we are out of the schedule
 		localtime_s(&tmtime, &timePlusDays);
+
+		// In the case we are at 00:00, we set the date to the previous day to correctly perform the calculation
+		if (tmtime.tm_hour == 0)
+		{
+			time_t auxTime = timePlusDays - 7200;
+			localtime_s(&tmtime, &auxTime);
+		}
 		tmtime.tm_hour = finishHour;
 		timeAtFinish = mktime(&tmtime);
 		time_t remainingHours = timePlusDays - timeAtFinish;
 
-		// We check if we are out of labour hours and move to the next day at the start hour + remaining hours
+		// We place the tmtime variable back to the last calculation we made
 		localtime_s(&tmtime, &timePlusDays);
 
-		// If we are still in the same day, we move to the next day at the start time + remaining hours
+		// If we are out of labour hours and still in the same day, we move to the next day at the start time + remaining hours
 		if (tmtime.tm_hour > finishHour)
 		{
 			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(24)) * 3600;
 			localtime_s(&tmtime, &timePlusDays);
 			tmtime.tm_hour = startHour;
 			timeAtStart = mktime(&tmtime);
+
+
+			localtime_s(&tmtime, &timeAtStart);
 			finishTime = timeAtStart + remainingHours;
+			localtime_s(&tmtimeSCRUM, &finishTime);
+
+			// If we have crossed the daily scrum, we add an hour to the total time
+			if ((tmtime.tm_hour <= scrumTime) && (tmtimeSCRUM.tm_hour > scrumTime))
+			{
+				finishTime = finishTime + 3600;
+				/*if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
+				{
+					cout << "Added 1h of SCRUM daily" << endl;
+				}*/
+			}
 
 			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
 			{
@@ -262,9 +336,18 @@ public:
 		{
 			tmtime.tm_hour = startHour;
 			timeAtStart = mktime(&tmtime);
-			finishTime = timeAtStart + remainingHours;
 
-			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+			localtime_s(&tmtime, &timeAtStart);
+			finishTime = timeAtStart + remainingHours;
+			localtime_s(&tmtimeSCRUM, &finishTime);
+
+			// If we have crossed the daily scrum, we add an hour to the total time
+			if ((tmtime.tm_hour <= scrumTime) && (tmtimeSCRUM.tm_hour > scrumTime))
+			{
+				finishTime = finishTime + 3600;
+			}
+
+			/*if (task.name.compare("Testing") == 0 && role.compare("CEO") == 0)
 			{
 				localtime_s(&tmtime, &finishTime);
 				strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
@@ -272,7 +355,10 @@ public:
 			}*/
 		}
 
-		// If we are in Saturday or Sunday, we advance until monday at the start hour
+		// We get the pointer to the latest time definition
+		localtime_s(&tmtime, &finishTime);
+
+		// If we are in Saturday or Sunday, we advance until monday
 		// Saturday
 		if (tmtime.tm_wday == 6)
 		{
@@ -294,10 +380,11 @@ public:
 			finishTime = finishTime + (static_cast<unsigned __int64>(24)) * 3600;
 		}
 
-		localtime_s(&tmtime, &finishTime);
-		strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
-		/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+
+		/*if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
 		{
+			localtime_s(&tmtime, &finishTime);
+			strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
 			cout << "Final finish time: " << printBuffer << endl;
 		}*/
 
@@ -996,7 +1083,7 @@ void writeSolution(vector<State> stateAssignments) {
 
 	}
 
-	
+
 
 
 	// We add a final state for the end of the project
@@ -1015,7 +1102,7 @@ void writeSolution(vector<State> stateAssignments) {
 		timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
 	}
 	dateData.push_back(timeString.str());
-	
+
 
 	// Insert column name and data into solution vector
 	solution.push_back(std::make_pair("Employee", employeeData));
@@ -1154,7 +1241,7 @@ vector<State> insertSCRUM(vector<State>& stateAssignments) {
 		localtime_s(&time, &localStartDate);
 
 	}
-	
+
 	// We return the solution with the added states
 	return stateAssignments;
 }
@@ -1208,7 +1295,7 @@ int main()
 
 	// Read both CSVs
 	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("employees.csv");
-	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks3.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks.csv");
 
 	// We print both CSVs
 	//cout << "***Printing employee Data***" << endl;
