@@ -5,10 +5,10 @@ Character Design,7,CEO,Concept
 Level Design,15,CEO,Concept
 Music Aligment,14,CPO,Concept
 Music Late Motifs,10,CPO,Concept
-Combat Programming,10,CTO,Concept
+Combat Programming,10,CTO,Level Design
 World Programming,7,CTO,Concept
 Inventory Programming,6,CTO,Concept
 Music Testing,4,CPO,Music Late Motifs
-Programming Testing,8,CTO,Inventory Programming
+Programming Testing,8,CTO,Inventory Programming|Combat Programming|World Programming
 Design Testing,6,CEO,Level Design
-Release,2 | 3 | 3,CEO|CTO|CPO,Design Testing
+Release,2 | 3 | 3,CEO|CTO|CPO,Design Testing|Music Testing|Programming Testing

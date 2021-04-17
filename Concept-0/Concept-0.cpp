@@ -20,7 +20,7 @@ static int finishHour = 17;
 static int numberOfWeeks = 2;
 static int hoursPerDay = finishHour - startHour;
 static std::string lunchTime;
-static int scrumTime = 11;
+static int scrumTime = -1;
 static std::tm startDate;
 static std::tm finishDate;
 
@@ -62,6 +62,7 @@ public:
 	}
 
 	bool dependsOn(std::string task) {
+
 		for (size_t i = 0; i < dependencies.size(); i++)
 		{
 			if (dependencies.at(i).compare(task) == 0) {
@@ -771,7 +772,7 @@ void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 					localtime_s(&hora, &temporalDate);
 
 					// If there is SCRUM time and its not that time, we generate the combination
-					if ((scrumTime != NULL) && (hora.tm_hour != scrumTime))
+					if (hora.tm_hour != scrumTime)
 					{
 						// We generate a combination of all of the factors
 						temporalDomain.employee = EMPLOYEE;
@@ -855,6 +856,11 @@ void mutex() {
 		{
 			temporalMutexVariablePair = std::make_pair(VARIABLE1.task.name, VARIABLE2.task.name);
 
+			/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
+			{
+				cout << "**Comparing task " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
+			}*/
+
 			// For each value in the domain of the first task
 			for (auto VALUE1 : DOMAINS)
 			{
@@ -887,11 +893,11 @@ void mutex() {
 							}
 							// We add all the combinations that have tasks that depend on the actual one and are done before it
 							else if (VARIABLE1.task.dependsOn(VARIABLE2.task.name) && (VALUE1.date < task2FinishTime)) {
-								if (VARIABLE1.task.name.compare("Testing") == 0)
+								/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
 								{
-									//cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
-									//cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
-								}
+									cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+									cout << "Task " << VARIABLE1.task.name << " depends on " << VARIABLE2.task.name << endl;
+								}*/
 
 								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
 								temporalMutexValueVector.push_back(temporalMutexValuePair);
@@ -1295,7 +1301,7 @@ int main()
 
 	// Read both CSVs
 	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("employees.csv");
-	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks2.csv");
 
 	// We print both CSVs
 	//cout << "***Printing employee Data***" << endl;
@@ -1350,9 +1356,12 @@ int main()
 		cout << endl;
 	}
 
-	// We insert the SCRUM dailies into the solution
-	stateAssignments = insertSCRUM(stateAssignments);
-
+	// We insert the SCRUM dailies into the solution if they're enabled
+	if (scrumTime != -1)
+	{
+		stateAssignments = insertSCRUM(stateAssignments);
+	}
+	
 	// We write the solution into a CSV file
 	writeSolution(stateAssignments);
 
