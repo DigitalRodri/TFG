@@ -9,6 +9,8 @@
 #include <sstream> // std::stringstream
 #include <cstdlib>
 #include <queue>
+#include <algorithm>
+#include <execution>
 #include <set>
 #include <map>
 using namespace std;
@@ -435,6 +437,7 @@ bool operator< (const Value& obj1, const Value& obj2) {
 static std::set<Variable> VARIABLES;
 static std::set<Value> DOMAINS;
 static std::map< pair<std::string, std::string>, vector<pair<int, int>> > MUTEX;
+vector<State> SOLUTION;
 
 void writeCSV(std::string filename, std::vector<std::pair<std::string, std::vector<string>>> dataset) {
 	// Make a CSV file with one or more columns of integer values
@@ -832,7 +835,7 @@ void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 	cout << endl;
 }
 
-void mutex() {
+void populateMutex() {
 	cout << "Calculating mutex" << endl;
 	cout << "------------" << endl;
 
@@ -843,8 +846,6 @@ void mutex() {
 	std::pair<int, int> temporalMutexValuePair;
 	Variable temporalVariable1;
 	Variable temporalVariable2;
-
-	//std::set<Variable>::iterator variableIterator = VARIABLES.begin();
 
 	// For each Task
 	for (auto VARIABLE1 : VARIABLES)
@@ -994,7 +995,7 @@ bool allStatesAssigned(vector<State> stateAssignments) {
 
 	if (allAssigned == true)
 	{
-		cout << "All states are assigned" << endl;
+		//cout << "All states are assigned" << endl;
 	}
 	return allAssigned;
 }
@@ -1005,10 +1006,12 @@ State getUnnassignedState(vector<State> stateAssignments) {
 	{
 
 		if (STATE.value.id == -1) {
-			cout << "Unnassigned state " << STATE.variable.task.name << " retrieved" << endl;
+			//cout << "Unnassigned state " << STATE.variable.task.name << " retrieved" << endl;
 			return STATE;
 		}
 	}
+
+	//cout << "No unnassigned states" << endl;
 
 }
 
@@ -1020,7 +1023,7 @@ void pushAssignedState(State CURRENTSTATE, vector<State>& stateAssignments) {
 		// If its variable coincides with the input one, we assign the value to the variable
 		if (stateAssignments.at(i).variable.id == CURRENTSTATE.variable.id)
 		{
-			cout << "Pushing value " << CURRENTSTATE.value.id << " for variable " << stateAssignments.at(i).variable.task.name << endl;
+		//	cout << "Pushing value " << CURRENTSTATE.value.id << " for variable " << stateAssignments.at(i).variable.task.name << endl;
 			stateAssignments.at(i).value = CURRENTSTATE.value;
 
 		}
@@ -1030,16 +1033,28 @@ void pushAssignedState(State CURRENTSTATE, vector<State>& stateAssignments) {
 void deleteAssignedVariable(State CURRENTSTATE, vector<State>& stateAssignments) {
 
 	// We iterate through the state assignments
-	for (State STATEASSIGNMENT : stateAssignments)
+	for (size_t i = 0; i < stateAssignments.size(); i++)
 	{
 		// If its variable coincides with the input one, we reset its value
-		if (STATEASSIGNMENT.variable.id == CURRENTSTATE.variable.id)
+		if (stateAssignments.at(i).variable.id == CURRENTSTATE.variable.id)
 		{
-			STATEASSIGNMENT.value.date = NULL;
-			STATEASSIGNMENT.value.employee.setNull();
-			STATEASSIGNMENT.value.id = -1;
+			stateAssignments.at(i).value.date = NULL;
+			stateAssignments.at(i).value.employee.setNull();
+			stateAssignments.at(i).value.id = -1;
 		}
 	}
+
+	//// We iterate through the state assignments
+	//for (State STATEASSIGNMENT : stateAssignments)
+	//{
+	//	// If its variable coincides with the input one, we reset its value
+	//	if (STATEASSIGNMENT.variable.id == CURRENTSTATE.variable.id)
+	//	{
+	//		STATEASSIGNMENT.value.date = NULL;
+	//		STATEASSIGNMENT.value.employee.setNull();
+	//		STATEASSIGNMENT.value.id = -1;
+	//	}
+	//}
 }
 
 void printStateAssignments(vector<State> stateAssignments) {
@@ -1121,6 +1136,31 @@ void writeSolution(vector<State> stateAssignments) {
 
 }
 
+void checkBestSolution(vector<State>& stateAssignments) {
+
+	// Auxiliary variables
+	time_t oldCounter = 00000;
+	time_t newCounter = 00000;
+
+	// We get the total time of the current solution and the new one
+	for (State STATE : SOLUTION)
+	{
+		oldCounter = oldCounter + STATE.value.date;
+	}
+	for (State STATE : stateAssignments)
+	{
+		newCounter = newCounter + STATE.value.date;
+	}
+
+	// If the new one has a lower time, it becomes the new solution
+	if (newCounter < oldCounter)
+	{
+		cout << "Better solution found" << endl;
+		SOLUTION = stateAssignments;
+	}
+
+}
+
 // Initially receives the states with all variables unnassigned
 bool DFS(vector<State>& stateAssignments) {
 
@@ -1131,6 +1171,7 @@ bool DFS(vector<State>& stateAssignments) {
 	// Base case: all variables have been assigned
 	if (allStatesAssigned(stateAssignments) == true)
 	{
+		// For the first solution
 		return true;
 	}
 	else {
@@ -1165,9 +1206,71 @@ bool DFS(vector<State>& stateAssignments) {
 		}
 
 		// All values have been tested, we backtrack
-		return false;
 		cout << "End of the variable values" << endl;
 		cout << endl;
+		return false;
+
+	}
+}
+
+bool DFSComplete(vector<State>& stateAssignments) {
+
+	//cout << "----" << endl;
+
+	//printStateAssignments(stateAssignments);
+
+	// Base case: all variables have been assigned
+	if (allStatesAssigned(stateAssignments) == true)
+	{
+		// If its the first solution, we assign it
+		if (SOLUTION.size() == 0)
+		{
+			cout << "First solution found" << endl;
+			SOLUTION = stateAssignments;
+		}
+		// If its not, we compare it against the current one to see if its better
+		else {
+			checkBestSolution(stateAssignments);
+		}
+
+		return false;
+
+	}
+	else {
+
+		// We get an unnassigned variable
+		State currentState = getUnnassignedState(stateAssignments);
+
+		// We iterate through all of the values of its domain
+		for (Value VALUE : DOMAINS)
+		{
+			if (isDomain(currentState.variable, VALUE))
+			{
+				// If the current value is not mutex with the already assigned variables
+				currentState.value = VALUE;
+				if (isMutex(currentState, stateAssignments) == false)
+				{
+					// We push the value into the assignedVariables list and execute the recursive call
+					pushAssignedState(currentState, stateAssignments);
+					bool result = DFSComplete(stateAssignments);
+
+					// If the call result is failure, we delete the assignment
+					if (result == false)
+					{
+						deleteAssignedVariable(currentState, stateAssignments);
+					}
+
+				}
+			}
+			//cout << "End of value" << endl;
+		}
+
+		// All values have been tested, we backtrack
+		//cout << "End of the variable " << currentState.variable.task.name << " values" << endl;
+		//cout << endl;
+		deleteAssignedVariable(currentState, stateAssignments);
+		return false;
+
 	}
 }
 
@@ -1301,7 +1404,7 @@ int main()
 
 	// Read both CSVs
 	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("employees.csv");
-	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks2.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks.csv");
 
 	// We print both CSVs
 	//cout << "***Printing employee Data***" << endl;
@@ -1331,7 +1434,7 @@ int main()
 	// Number of values = weeks*days*hours*employees
 	printDomains();
 
-	mutex();
+	populateMutex();
 
 	/* We create a vector of States with unassigned Variables */
 	vector<State> stateAssignments = createStateVector();
@@ -1339,7 +1442,12 @@ int main()
 	/* DFS is started */
 	cout << "Beginning DFS" << endl;
 	cout << "------------" << endl;
+
+	// Get the first solution | FAST
 	bool DFSResult = DFS(stateAssignments);
+
+	// Get best solution | TAKES HOURS
+	//DFSComplete(stateAssignments);
 
 	if (DFSResult == true)
 	{
@@ -1352,18 +1460,20 @@ int main()
 		cout << "*////////////////////*" << endl;
 		cout << endl;
 		cout << "***DFS FAILURE***" << endl;
-		cout << "Not enough time to finish the project" << endl;
+		cout << "Not enough time to finish the project perhaps?" << endl;
 		cout << endl;
 	}
+
+	SOLUTION = stateAssignments;
 
 	// We insert the SCRUM dailies into the solution if they're enabled
 	if (scrumTime != -1)
 	{
 		stateAssignments = insertSCRUM(stateAssignments);
 	}
-	
+
 	// We write the solution into a CSV file
-	writeSolution(stateAssignments);
+	writeSolution(SOLUTION);
 
 
 	cout << endl;
