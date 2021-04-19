@@ -816,7 +816,7 @@ void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 
 		temporalPair1.first = iterations;
 	}
-
+	 
 
 	for (size_t i = 0; i < taskList.size(); i++) {
 
@@ -1248,6 +1248,22 @@ void checkBestSolution(vector<State>& stateAssignments) {
 
 }
 
+Value getMostFavourableValue(vector<Value> valuesVector) {
+
+	// We initialize the variable as the first value
+	Value bestValue = valuesVector.at(0);
+
+	for (Value VALUE : valuesVector)
+	{
+		if (VALUE.date < bestValue.date)
+		{
+			bestValue = VALUE;
+		}
+	}
+
+	return bestValue;
+}
+
 // Initially receives the states with all variables unnassigned
 bool DFS(vector<State>& stateAssignments) {
 
@@ -1359,6 +1375,43 @@ bool DFSComplete(vector<State>& stateAssignments) {
 		return false;
 
 	}
+}
+
+bool GreedySearch(vector<State>& stateAssignments) {
+	// For each value that is compatible with the current one, we choose the most favorable one
+	// We compute the heuristic calculation, it being the state with the lowest time in the latest instantitead task
+	State tempState;
+
+	for (Variable VARIABLE : VARIABLES)
+	{
+		vector<Value> candidateStates;
+		tempState.variable = VARIABLE;
+
+		// We iterate through all of the values of its domain
+		for (Value VALUE : DOMAINS)
+		{
+			if (isDomain(VARIABLE, VALUE))
+			{
+				tempState.value = VALUE;
+				// If the current value is not mutex with the already asigned variables
+				if (isMutex(tempState, stateAssignments) == false)
+				{
+					// We add it to the vector of candidates
+					candidateStates.push_back(VALUE);
+				}
+			}
+		}
+		cout << "Vector size: " << candidateStates.size() << endl;
+		Value bestValue = getMostFavourableValue(candidateStates);
+		tempState.value = bestValue;
+		pushAssignedState(tempState, stateAssignments);
+	}
+	
+	// All values have been tested, we backtrack
+	cout << "End of the greedy search" << endl;
+	cout << endl;
+	printStateAssignments(stateAssignments);
+	return true;
 }
 
 vector<State> createStateVector() {
@@ -1558,6 +1611,7 @@ int main()
 	// Get the first solution | FAST
 	//bool DFSResult = true;
 	bool DFSResult = DFS(stateAssignments);
+	//bool DFSResult = GreedySearch(stateAssignments);
 
 	// Get best solution | TAKES HOURS
 	//DFSComplete(stateAssignments);
