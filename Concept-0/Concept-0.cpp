@@ -8,6 +8,7 @@
 #include <stdexcept> // std::runtime_error
 #include <sstream> // std::stringstream
 #include <cstdlib>
+#include <omp.h>
 #include <queue>
 #include <algorithm>
 #include <execution>
@@ -835,91 +836,179 @@ void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 	cout << endl;
 }
 
+//void populateMutexParallel(std::vector<Variable> inputVariables) {
+//	cout << "Calculating mutex" << endl;
+//	cout << "------------" << endl;
+//
+//	//thread_local int counter = 0;
+//	thread_local std::pair< pair<std::string, std::string>, vector<pair<int, int>> > temporalMutexPair;
+//	thread_local vector<pair<int, int>> temporalMutexValueVector;
+//	thread_local std::pair<std::string, std::string> temporalMutexVariablePair;
+//	thread_local std::pair<int, int> temporalMutexValuePair;
+//	thread_local Variable temporalVariable1;
+//	thread_local Variable temporalVariable2;
+//
+//	// For each input variable
+//	for (auto VARIABLE1 : inputVariables) {
+//		cout << "Calculating mutex of " << VARIABLE1.task.name << endl;
+//
+//		// We compare it against the rest of the tasks
+//		for (auto VARIABLE2 : VARIABLES)
+//		{
+//			temporalMutexVariablePair = std::make_pair(VARIABLE1.task.name, VARIABLE2.task.name);
+//
+//			/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
+//			{
+//				cout << "**Comparing task " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
+//			}*/
+//
+//			// For each value in the domain of the first task
+//			for (auto VALUE1 : DOMAINS)
+//			{
+//				//cout << "Calculating mutex of " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
+//				if (isDomain(VARIABLE1, VALUE1))
+//				{
+//
+//					// We compare it against the domain of the rest of the tasks
+//					for (auto VALUE2 : DOMAINS)
+//					{
+//						if (isDomain(VARIABLE2, VALUE2))
+//						{
+//
+//							//cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
+//
+//							time_t task2FinishTime = VARIABLE2.getTaskFinishTime(VALUE2.employee.role, VALUE2.date);
+//
+//							// We add all combinations of the same employee at the duration of the task
+//							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date <= VALUE1.date) && (VALUE1.date < task2FinishTime))
+//							{
+//								if (VARIABLE1.task.name.compare("Testing") == 0)
+//								{
+//									//cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+//									//cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
+//								}
+//
+//								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
+//								temporalMutexValueVector.push_back(temporalMutexValuePair);
+//								//counter++;
+//							}
+//							// We add all the combinations that have tasks that depend on the actual one and are done before it
+//							else if (VARIABLE1.task.dependsOn(VARIABLE2.task.name) && (VALUE1.date < task2FinishTime)) {
+//								/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
+//								{
+//									cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+//									cout << "Task " << VARIABLE1.task.name << " depends on " << VARIABLE2.task.name << endl;
+//								}*/
+//
+//								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
+//								temporalMutexValueVector.push_back(temporalMutexValuePair);
+//								//counter++;
+//							}
+//
+//						}
+//					}
+//
+//				}
+//
+//			}
+//			//cout << "Pair is " << temporalMutexVariablePair.first << " and " << temporalMutexVariablePair.second << endl;
+//			temporalMutexPair = std::make_pair(temporalMutexVariablePair, temporalMutexValueVector);
+//			MUTEX.insert(temporalMutexPair);
+//			temporalMutexValueVector.clear();
+//		}
+//		//cout << "Mutex size of " << VARIABLE1.task.name << " is " << counter << endl;
+//		//counter = 0;
+//
+//	}
+//
+//	cout << endl;
+//
+//}
+
 void populateMutex() {
 	cout << "Calculating mutex" << endl;
 	cout << "------------" << endl;
 
-	int counter = 0;
-	std::pair< pair<std::string, std::string>, vector<pair<int, int>> > temporalMutexPair;
-	vector<pair<int, int>> temporalMutexValueVector;
-	std::pair<std::string, std::string> temporalMutexVariablePair;
-	std::pair<int, int> temporalMutexValuePair;
-	Variable temporalVariable1;
-	Variable temporalVariable2;
+	//thread_local int counter = 0;
+	thread_local std::pair< pair<std::string, std::string>, vector<pair<int, int>> > temporalMutexPair;
+	thread_local vector<pair<int, int>> temporalMutexValueVector;
+	thread_local std::pair<std::string, std::string> temporalMutexVariablePair;
+	thread_local std::pair<int, int> temporalMutexValuePair;
+	thread_local Variable temporalVariable1;
+	thread_local Variable temporalVariable2;
 
 	// For each Task
-	for (auto VARIABLE1 : VARIABLES)
-	{
-		cout << "Calculating mutex of " << VARIABLE1.task.name << endl;
+		for (auto VARIABLE1 : VARIABLES) {
+			cout << "Calculating mutex of " << VARIABLE1.task.name << endl;
 
-		// We compare it against the rest of the tasks
-		for (auto VARIABLE2 : VARIABLES)
-		{
-			temporalMutexVariablePair = std::make_pair(VARIABLE1.task.name, VARIABLE2.task.name);
-
-			/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
+			// We compare it against the rest of the tasks
+			for (auto VARIABLE2 : VARIABLES)
 			{
-				cout << "**Comparing task " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
-			}*/
+				temporalMutexVariablePair = std::make_pair(VARIABLE1.task.name, VARIABLE2.task.name);
 
-			// For each value in the domain of the first task
-			for (auto VALUE1 : DOMAINS)
-			{
-				//cout << "Calculating mutex of " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
-				if (isDomain(VARIABLE1, VALUE1))
+				/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
 				{
+					cout << "**Comparing task " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
+				}*/
 
-					// We compare it against the domain of the rest of the tasks
-					for (auto VALUE2 : DOMAINS)
+				// For each value in the domain of the first task
+				for (auto VALUE1 : DOMAINS)
+				{
+					//cout << "Calculating mutex of " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
+					if (isDomain(VARIABLE1, VALUE1))
 					{
-						if (isDomain(VARIABLE2, VALUE2))
+
+						// We compare it against the domain of the rest of the tasks
+						for (auto VALUE2 : DOMAINS)
 						{
-
-							//cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
-
-							time_t task2FinishTime = VARIABLE2.getTaskFinishTime(VALUE2.employee.role, VALUE2.date);
-
-							// We add all combinations of the same employee at the duration of the task
-							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date <= VALUE1.date) && (VALUE1.date < task2FinishTime))
+							if (isDomain(VARIABLE2, VALUE2))
 							{
-								if (VARIABLE1.task.name.compare("Testing") == 0)
+
+								//cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
+
+								time_t task2FinishTime = VARIABLE2.getTaskFinishTime(VALUE2.employee.role, VALUE2.date);
+
+								// We add all combinations of the same employee at the duration of the task
+								if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date <= VALUE1.date) && (VALUE1.date < task2FinishTime))
 								{
-									//cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
-									//cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
+									if (VARIABLE1.task.name.compare("Testing") == 0)
+									{
+										//cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+										//cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
+									}
+
+									temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
+									temporalMutexValueVector.push_back(temporalMutexValuePair);
+									//counter++;
+								}
+								// We add all the combinations that have tasks that depend on the actual one and are done before it
+								else if (VARIABLE1.task.dependsOn(VARIABLE2.task.name) && (VALUE1.date < task2FinishTime)) {
+									/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
+									{
+										cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+										cout << "Task " << VARIABLE1.task.name << " depends on " << VARIABLE2.task.name << endl;
+									}*/
+
+									temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
+									temporalMutexValueVector.push_back(temporalMutexValuePair);
+									//counter++;
 								}
 
-								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
-								temporalMutexValueVector.push_back(temporalMutexValuePair);
-								counter++;
 							}
-							// We add all the combinations that have tasks that depend on the actual one and are done before it
-							else if (VARIABLE1.task.dependsOn(VARIABLE2.task.name) && (VALUE1.date < task2FinishTime)) {
-								/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
-								{
-									cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
-									cout << "Task " << VARIABLE1.task.name << " depends on " << VARIABLE2.task.name << endl;
-								}*/
-
-								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
-								temporalMutexValueVector.push_back(temporalMutexValuePair);
-								counter++;
-							}
-
 						}
+
 					}
 
 				}
-
+				//cout << "Pair is " << temporalMutexVariablePair.first << " and " << temporalMutexVariablePair.second << endl;
+				temporalMutexPair = std::make_pair(temporalMutexVariablePair, temporalMutexValueVector);
+				MUTEX.insert(temporalMutexPair);
+				temporalMutexValueVector.clear();
 			}
-			//cout << "Pair is " << temporalMutexVariablePair.first << " and " << temporalMutexVariablePair.second << endl;
-			temporalMutexPair = std::make_pair(temporalMutexVariablePair, temporalMutexValueVector);
-			MUTEX.insert(temporalMutexPair);
-			temporalMutexValueVector.clear();
-		}
-		cout << "Mutex size of " << VARIABLE1.task.name << " is " << counter << endl;
-		counter = 0;
+			//cout << "Mutex size of " << VARIABLE1.task.name << " is " << counter << endl;
+			//counter = 0;
 
-	}
+		}
 
 	cout << endl;
 
@@ -1103,8 +1192,6 @@ void writeSolution(vector<State> stateAssignments) {
 		}
 
 	}
-
-
 
 
 	// We add a final state for the end of the project
@@ -1434,6 +1521,31 @@ int main()
 	// Number of values = weeks*days*hours*employees
 	printDomains();
 
+	/*int numThreads = 2;
+	int variablesPerThread = VARIABLES.size() / numThreads;
+	int variablesLastThread = VARIABLES.size() % numThreads;
+	int counter = 0;
+	vector<std::thread::id> threadIDs;
+
+	for (Variable VARIABLE : VARIABLES)
+	{
+		
+		vector<Variable> inputVariables;
+		for (size_t i = 0; i < numThreads; i++)
+		{
+			inputVariables.push_back(VARIABLE);
+			
+		}
+		std::thread thread (populateMutexParallel, inputVariables);
+		threadIDs.push_back(thread.get_id());
+		counter++;
+	}
+
+	for (std::thread::id id : threadIDs)
+	{
+		
+	}*/
+
 	populateMutex();
 
 	/* We create a vector of States with unassigned Variables */
@@ -1444,6 +1556,7 @@ int main()
 	cout << "------------" << endl;
 
 	// Get the first solution | FAST
+	//bool DFSResult = true;
 	bool DFSResult = DFS(stateAssignments);
 
 	// Get best solution | TAKES HOURS
