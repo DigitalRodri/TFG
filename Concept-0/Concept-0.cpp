@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <execution>
 #include <set>
+#include <unordered_set>
 #include <map>
 using namespace std;
 
@@ -1366,11 +1367,38 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 	// We first sort the array of dates
 	std::sort(valuesVector.begin(), valuesVector.end(), compareValuesByDate);
 	
-	// And then we get the top K values we want
-	for (size_t i = 0; i < numberOfKCandidates; i++)
+	// Counter for how many distinct elements have been pushed
+	int counter = 0;
+	bool duplicate = false;
+
+	// And then we get the top K distinct values we want
+	for (size_t i = 0; i < valuesVector.size(); i++)
 	{
-		//cout << "Pushing best value " << i  << " with id " << valuesVector.at(i).id << endl;
-		solutionVector.push_back(valuesVector.at(i));
+		// For each element we compare it against the elements of the solution vector
+		for (Value VALUE : solutionVector)
+		{
+			if (valuesVector.at(i).id == VALUE.id )
+			{
+				duplicate = true;
+			}
+		}
+
+		// If it isnt duplicate we push it
+		if (duplicate == false)
+		{
+			solutionVector.push_back(valuesVector.at(i));
+			counter++;
+		}
+
+		// We reset the variable
+		duplicate = false;
+
+		// If we have pushed K values we break the loop
+		if (counter == numberOfKCandidates)
+		{
+			break;
+		}
+		
 	}
 
 	return solutionVector;
