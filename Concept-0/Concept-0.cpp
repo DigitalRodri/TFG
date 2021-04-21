@@ -8,7 +8,6 @@
 #include <stdexcept> // std::runtime_error
 #include <sstream> // std::stringstream
 #include <cstdlib>
-#include <omp.h>
 #include <queue>
 #include <algorithm>
 #include <execution>
@@ -615,6 +614,23 @@ void printDomains() {
 	cout << endl;
 }
 
+bool areStateVectorsEqual(vector<State> vector1, vector<State> vector2) {
+
+	bool allEqual = true;
+
+	// We compare each state of each vector
+	for (size_t i = 0; i < vector1.size(); i++)
+	{
+		// If any of their values dont coincide, they are not equal
+		if ( vector1.at(i).value.id != vector2.at(i).value.id )
+		{
+			allEqual = false;
+		}
+	}
+
+	return allEqual;
+}
+
 void print_map(std::map< pair<std::string, std::string>, vector<pair<Value*, Value*>> > const& m)
 {
 	for (auto const& pair : m) {
@@ -816,7 +832,7 @@ void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 
 		temporalPair1.first = iterations;
 	}
-	 
+
 
 	for (size_t i = 0; i < taskList.size(); i++) {
 
@@ -938,77 +954,77 @@ void populateMutex() {
 	thread_local Variable temporalVariable2;
 
 	// For each Task
-		for (auto VARIABLE1 : VARIABLES) {
-			cout << "Calculating mutex of " << VARIABLE1.task.name << endl;
+	for (auto VARIABLE1 : VARIABLES) {
+		cout << "Calculating mutex of " << VARIABLE1.task.name << endl;
 
-			// We compare it against the rest of the tasks
-			for (auto VARIABLE2 : VARIABLES)
+		// We compare it against the rest of the tasks
+		for (auto VARIABLE2 : VARIABLES)
+		{
+			temporalMutexVariablePair = std::make_pair(VARIABLE1.task.name, VARIABLE2.task.name);
+
+			/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
 			{
-				temporalMutexVariablePair = std::make_pair(VARIABLE1.task.name, VARIABLE2.task.name);
+				cout << "**Comparing task " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
+			}*/
 
-				/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
+			// For each value in the domain of the first task
+			for (auto VALUE1 : DOMAINS)
+			{
+				//cout << "Calculating mutex of " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
+				if (isDomain(VARIABLE1, VALUE1))
 				{
-					cout << "**Comparing task " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
-				}*/
 
-				// For each value in the domain of the first task
-				for (auto VALUE1 : DOMAINS)
-				{
-					//cout << "Calculating mutex of " << VARIABLE1.task.name << " with " << VARIABLE2.task.name << endl;
-					if (isDomain(VARIABLE1, VALUE1))
+					// We compare it against the domain of the rest of the tasks
+					for (auto VALUE2 : DOMAINS)
 					{
-
-						// We compare it against the domain of the rest of the tasks
-						for (auto VALUE2 : DOMAINS)
+						if (isDomain(VARIABLE2, VALUE2))
 						{
-							if (isDomain(VARIABLE2, VALUE2))
+
+							//cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
+
+							time_t task2FinishTime = VARIABLE2.getTaskFinishTime(VALUE2.employee.role, VALUE2.date);
+
+							// We add all combinations of the same employee at the duration of the task
+							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date <= VALUE1.date) && (VALUE1.date < task2FinishTime))
 							{
-
-								//cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
-
-								time_t task2FinishTime = VARIABLE2.getTaskFinishTime(VALUE2.employee.role, VALUE2.date);
-
-								// We add all combinations of the same employee at the duration of the task
-								if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date <= VALUE1.date) && (VALUE1.date < task2FinishTime))
+								if (VARIABLE1.task.name.compare("Testing") == 0)
 								{
-									if (VARIABLE1.task.name.compare("Testing") == 0)
-									{
-										//cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
-										//cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
-									}
-
-									temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
-									temporalMutexValueVector.push_back(temporalMutexValuePair);
-									//counter++;
-								}
-								// We add all the combinations that have tasks that depend on the actual one and are done before it
-								else if (VARIABLE1.task.dependsOn(VARIABLE2.task.name) && (VALUE1.date < task2FinishTime)) {
-									/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
-									{
-										cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
-										cout << "Task " << VARIABLE1.task.name << " depends on " << VARIABLE2.task.name << endl;
-									}*/
-
-									temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
-									temporalMutexValueVector.push_back(temporalMutexValuePair);
-									//counter++;
+									//cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+									//cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
 								}
 
+								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
+								temporalMutexValueVector.push_back(temporalMutexValuePair);
+								//counter++;
 							}
-						}
+							// We add all the combinations that have tasks that depend on the actual one and are done before it
+							else if (VARIABLE1.task.dependsOn(VARIABLE2.task.name) && (VALUE1.date < task2FinishTime)) {
+								/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
+								{
+									cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+									cout << "Task " << VARIABLE1.task.name << " depends on " << VARIABLE2.task.name << endl;
+								}*/
 
+								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
+								temporalMutexValueVector.push_back(temporalMutexValuePair);
+								//counter++;
+							}
+
+						}
 					}
 
 				}
-				//cout << "Pair is " << temporalMutexVariablePair.first << " and " << temporalMutexVariablePair.second << endl;
-				temporalMutexPair = std::make_pair(temporalMutexVariablePair, temporalMutexValueVector);
-				MUTEX.insert(temporalMutexPair);
-				temporalMutexValueVector.clear();
-			}
-			//cout << "Mutex size of " << VARIABLE1.task.name << " is " << counter << endl;
-			//counter = 0;
 
+			}
+			//cout << "Pair is " << temporalMutexVariablePair.first << " and " << temporalMutexVariablePair.second << endl;
+			temporalMutexPair = std::make_pair(temporalMutexVariablePair, temporalMutexValueVector);
+			MUTEX.insert(temporalMutexPair);
+			temporalMutexValueVector.clear();
 		}
+		//cout << "Mutex size of " << VARIABLE1.task.name << " is " << counter << endl;
+		//counter = 0;
+
+	}
 
 	cout << endl;
 
@@ -1089,6 +1105,15 @@ bool allStatesAssigned(vector<State> stateAssignments) {
 	return allAssigned;
 }
 
+void printStateAssignments(vector<State> stateAssignments) {
+
+	for (State STATE : stateAssignments)
+	{
+		cout << STATE.variable.task.name << " " << STATE.value.id << endl;
+	}
+
+}
+
 State getUnnassignedState(vector<State> stateAssignments) {
 
 	for (State STATE : stateAssignments)
@@ -1112,8 +1137,63 @@ void pushAssignedState(State CURRENTSTATE, vector<State>& stateAssignments) {
 		// If its variable coincides with the input one, we assign the value to the variable
 		if (stateAssignments.at(i).variable.id == CURRENTSTATE.variable.id)
 		{
-		//	cout << "Pushing value " << CURRENTSTATE.value.id << " for variable " << stateAssignments.at(i).variable.task.name << endl;
+			//	cout << "Pushing value " << CURRENTSTATE.value.id << " for variable " << stateAssignments.at(i).variable.task.name << endl;
 			stateAssignments.at(i).value = CURRENTSTATE.value;
+
+		}
+	}
+}
+
+void pushAssignedValues(vector<Value> candidateValues, Variable VARIABLE, vector<State> currentStateAsignment, vector<vector<State>>& stateAssignments) {
+
+	/*for (vector<State> SOLUTION : stateAssignments)
+	{
+		cout << "Current solutions:" << endl;
+		printStateAssignments(SOLUTION);
+		cout << endl;
+	}*/
+
+	// We iterate through the vectors of state assignments
+	for (size_t i = 0; i < stateAssignments.size(); i++)
+	{
+		// If the vector is equal to the input one
+		if (areStateVectorsEqual(currentStateAsignment, stateAssignments.at(i)))
+		{
+			//cout << "Vectors are equal" << endl;
+
+			// We go to the corresponding variable
+			for (size_t ii = 0; ii < currentStateAsignment.size(); ii++)
+			{
+				if (currentStateAsignment.at(ii).variable.id == VARIABLE.id) {
+
+					//cout << "State found, updating state" << endl;
+
+					// We create assignments for each of the new values
+					for (size_t iii = 0; iii < candidateValues.size(); iii++)
+					{
+						currentStateAsignment.at(ii).value = candidateValues.at(iii);
+
+						// If it the first value we just assign it
+						if (iii == 0)
+						{
+							//cout << "Pushing replacement of original state" << endl;
+							stateAssignments.at(i) = currentStateAsignment;
+						}
+						// If its not the first value, we push a new assignment with the value
+						else {
+
+							//cout << "Pushing alternative state" << endl;
+							stateAssignments.push_back(currentStateAsignment);
+						}
+						
+						
+					}
+
+					// When we have finished creating the states, we return
+					return;
+				}
+			}
+
 
 		}
 	}
@@ -1146,16 +1226,7 @@ void deleteAssignedVariable(State CURRENTSTATE, vector<State>& stateAssignments)
 	//}
 }
 
-void printStateAssignments(vector<State> stateAssignments) {
-
-	for (State STATE : stateAssignments)
-	{
-		cout << STATE.variable.task.name << " " << STATE.value.id << endl;
-	}
-
-}
-
-void writeSolution(vector<State> stateAssignments) {
+void writeSolution(vector<vector<State>> stateAssignments) {
 
 	cout << "Exporting solution" << endl;
 	cout << "------------" << endl;
@@ -1169,57 +1240,67 @@ void writeSolution(vector<State> stateAssignments) {
 	time_t lastStateDate = 00000;
 
 	// Final vector for inserting solution into the writing CSV function
-	std::vector<std::pair<std::string, std::vector<string>>> solution;
+	std::vector<std::pair<std::string, std::vector<string>>> solutions;
 
-	// Collect data from solution and place it into the vectors
-	for (State state : stateAssignments)
+	// For each solution
+	for (vector<State> solution : stateAssignments)
 	{
-		employeeData.push_back(state.value.employee.name);
-		taskData.push_back(state.variable.task.name);
-		durationString = to_string(state.variable.getTaskDuration(state.value.employee.role));
-		durationData.push_back(durationString);
 
-		stringstream timeString;
-		struct std::tm hora;
-		localtime_s(&hora, &state.value.date);
-		timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
-		dateData.push_back(timeString.str());
-
-		// If there was no SCRUM implementation, we make the calculation of the finish Date
-		if (scrumTime == -1)
+		// Collect data from solution and place it into the vectors
+		for (State state : solution)
 		{
-			lastStateDate = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+			employeeData.push_back(state.value.employee.name);
+			taskData.push_back(state.variable.task.name);
+			durationString = to_string(state.variable.getTaskDuration(state.value.employee.role));
+			durationData.push_back(durationString);
+
+			stringstream timeString;
+			struct std::tm hora;
+			localtime_s(&hora, &state.value.date);
+			timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
+			dateData.push_back(timeString.str());
+
+			// If there was no SCRUM implementation, we make the calculation of the finish Date
+			if (scrumTime == -1)
+			{
+				lastStateDate = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+			}
+
 		}
 
+		// We add a final state for the end of the project
+		employeeData.push_back("-");
+		taskData.push_back("Finish");
+		durationData.push_back("-");
+		stringstream timeString;
+
+		// If there is a SCRUM implementation, we take the value from the static variable
+		if (scrumTime != -1) {
+			timeString << std::put_time(&finishDate, "%Y-%m-%dT%H:%M:%S");
+		}
+		else {
+			struct std::tm hora;
+			localtime_s(&hora, &lastStateDate);
+			timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
+		}
+		dateData.push_back(timeString.str());
+
+
+		// Insert column name and data into solution vector
+		solutions.push_back(std::make_pair("Employee", employeeData));
+		solutions.push_back(std::make_pair("Task", taskData));
+		solutions.push_back(std::make_pair("Date", dateData));
+		solutions.push_back(std::make_pair("Duration", durationData));
+
+		employeeData.clear();
+		taskData.clear();
+		dateData.clear();
+		durationData.clear();
+
 	}
-
-
-	// We add a final state for the end of the project
-	employeeData.push_back("-");
-	taskData.push_back("Finish");
-	durationData.push_back("-");
-	stringstream timeString;
-
-	// If there is a SCRUM implementation, we take the value from the static variable
-	if (scrumTime != -1) {
-		timeString << std::put_time(&finishDate, "%Y-%m-%dT%H:%M:%S");
-	}
-	else {
-		struct std::tm hora;
-		localtime_s(&hora, &lastStateDate);
-		timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
-	}
-	dateData.push_back(timeString.str());
-
-
-	// Insert column name and data into solution vector
-	solution.push_back(std::make_pair("Employee", employeeData));
-	solution.push_back(std::make_pair("Task", taskData));
-	solution.push_back(std::make_pair("Date", dateData));
-	solution.push_back(std::make_pair("Duration", durationData));
 
 	// Call to the writing CSV function with the data
-	writeCSV("Solution.csv", solution);
+	writeCSV("Solution.csv", solutions);
 
 }
 
@@ -1248,20 +1329,61 @@ void checkBestSolution(vector<State>& stateAssignments) {
 
 }
 
-Value getMostFavourableValue(vector<Value> valuesVector) {
+bool compareValuesByDate(Value v1, Value v2) {
+	return (v1.date < v2.date);
+}
 
-	// We initialize the variable as the first value
-	Value bestValue = valuesVector.at(0);
+bool compareStateVectorByDate(vector<State> s1, vector<State> s2) {
 
-	for (Value VALUE : valuesVector)
+	time_t s1Date = 00000;
+	time_t s2Date = 00000;
+
+	// We traverse the states and get the last value that is not -1
+	for (State STATE : s1)
 	{
-		if (VALUE.date < bestValue.date)
+		if (STATE.value.id != -1)
 		{
-			bestValue = VALUE;
+			s1Date = STATE.value.date;
 		}
 	}
 
-	return bestValue;
+	for (State STATE : s2)
+	{
+		if (STATE.value.id != -1)
+		{
+			s2Date = STATE.value.date;
+		}
+	}
+
+	return (s1Date < s2Date);
+}
+
+vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKCandidates) {
+
+	// Auxiliary variable
+	vector<Value> solutionVector;
+
+	// We first sort the array of dates
+	std::sort(valuesVector.begin(), valuesVector.end(), compareValuesByDate);
+	
+	// And then we get the top K values we want
+	for (size_t i = 0; i < numberOfKCandidates; i++)
+	{
+		//cout << "Pushing best value " << i  << " with id " << valuesVector.at(i).id << endl;
+		solutionVector.push_back(valuesVector.at(i));
+	}
+
+	return solutionVector;
+}
+
+void purgeSolutions(vector<vector<State>>& solutionsVector, Variable VARIABLE, int numberOfKCandidates) {
+
+	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variablee
+	std::sort(solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDate);
+
+	// We get the K values from the vector
+	vector<vector<State>> auxVector(solutionsVector.begin(), solutionsVector.begin() + numberOfKCandidates);
+	solutionsVector = auxVector;
 }
 
 // Initially receives the states with all variables unnassigned
@@ -1378,13 +1500,14 @@ bool DFSComplete(vector<State>& stateAssignments) {
 }
 
 bool GreedySearch(vector<State>& stateAssignments) {
+
 	// For each value that is compatible with the current one, we choose the most favorable one
-	// We compute the heuristic calculation, it being the state with the lowest time in the latest instantitead task
+	// We compute the heuristic calculation, it being the state with the lowest time
 	State tempState;
 
 	for (Variable VARIABLE : VARIABLES)
 	{
-		vector<Value> candidateStates;
+		vector<Value> candidateValues;
 		tempState.variable = VARIABLE;
 
 		// We iterate through all of the values of its domain
@@ -1397,21 +1520,124 @@ bool GreedySearch(vector<State>& stateAssignments) {
 				if (isMutex(tempState, stateAssignments) == false)
 				{
 					// We add it to the vector of candidates
-					candidateStates.push_back(VALUE);
+					candidateValues.push_back(VALUE);
 				}
 			}
 		}
-		cout << "Vector size: " << candidateStates.size() << endl;
-		Value bestValue = getMostFavourableValue(candidateStates);
-		tempState.value = bestValue;
+		cout << "Vector size: " << candidateValues.size() << endl;
+
+		// We set the K as 5
+		vector<Value> bestValues = getMostFavourableValues(candidateValues, 5);
+
+		// We extend these 5 values and execute the algorithm again
+
+		tempState.value = bestValues.at(0);
 		pushAssignedState(tempState, stateAssignments);
 	}
-	
+
 	// All values have been tested, we backtrack
 	cout << "End of the greedy search" << endl;
 	cout << endl;
 	printStateAssignments(stateAssignments);
 	return true;
+}
+
+vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKCandidates) {
+	// For each value that is compatible with the current one, we choose the most favorable one
+	// We compute the heuristic calculation, it being the state with the lowest time in the latest instantitead task
+	// We do this with various instantiations at a time
+
+	cout << "Beginning Beam Search" << endl;
+	cout << "------" << endl;
+
+	// List of vectors of solutions
+	vector<vector<State>> solutionsVector;
+	solutionsVector.push_back(stateAssignments);
+
+	State tempState;
+
+	// For each variable
+	for (Variable VARIABLE : VARIABLES)
+	{
+		cout << "Number of solution vectors: " << solutionsVector.size() << endl;
+		cout << endl;
+
+		vector<Value> candidateValues;
+		tempState.variable = VARIABLE;
+
+		vector<vector<State>> solutionsCopy = solutionsVector;
+
+		// For each instantiated assignment
+		for (vector<State> VECTOR : solutionsVector)
+		{
+
+			cout << "Comprobando vector: " << endl;
+			//printStateAssignments(VECTOR);
+
+			// We iterate through all of the values of its domain that are compatible with the already instantiated variable
+			for (Value VALUE : DOMAINS)
+			{
+				if (isDomain(VARIABLE, VALUE))
+				{
+					tempState.value = VALUE;
+					// If the current value is not mutex with the already asigned variables
+					if (isMutex(tempState, VECTOR) == false)
+					{
+						// We add it to the vector of candidates
+						candidateValues.push_back(VALUE);
+					}
+				}
+			}
+
+			//cout << "Vector size: " << candidateValues.size() << endl;
+
+			// We get the K best values
+			candidateValues = getMostFavourableValues(candidateValues, numberOfKCandidates);
+
+			cout << "Values are: ";
+			for (Value VALUE: candidateValues)
+			{
+				cout << VALUE.id << " ";
+			}
+			cout << endl;
+
+			// We push the K best values into new assignments
+			pushAssignedValues(candidateValues, VARIABLE, VECTOR, solutionsCopy);
+
+			
+			for (vector<State> VECTOR : solutionsCopy)
+			{
+				cout << "- Solution after Values -" << endl;
+				printStateAssignments(VECTOR);
+			}
+
+			cout << "-- Vector of states finished --" << endl;
+			cout << endl;
+		}
+
+		cout << "-- Variable finished " << VARIABLE.task.name << " --" << endl;
+		cout << endl;
+
+		/*for (vector<State> solution : solutionsCopy)
+		{
+			cout << "-- Solutions prePurge --" << endl;
+			printStateAssignments(solution);
+		}*/
+
+		if (solutionsCopy.size() > numberOfKCandidates)
+		{
+			purgeSolutions(solutionsCopy, VARIABLE, numberOfKCandidates);
+		}
+
+		solutionsVector = solutionsCopy;
+
+	}
+
+	// All values have been tested, we backtrack
+	cout << "End of the Beam search" << endl;
+	cout << endl;
+
+	return solutionsVector;
 }
 
 vector<State> createStateVector() {
@@ -1582,12 +1808,12 @@ int main()
 
 	for (Variable VARIABLE : VARIABLES)
 	{
-		
+
 		vector<Variable> inputVariables;
 		for (size_t i = 0; i < numThreads; i++)
 		{
 			inputVariables.push_back(VARIABLE);
-			
+
 		}
 		std::thread thread (populateMutexParallel, inputVariables);
 		threadIDs.push_back(thread.get_id());
@@ -1596,7 +1822,7 @@ int main()
 
 	for (std::thread::id id : threadIDs)
 	{
-		
+
 	}*/
 
 	populateMutex();
@@ -1605,14 +1831,21 @@ int main()
 	vector<State> stateAssignments = createStateVector();
 
 	/* DFS is started */
-	cout << "Beginning DFS" << endl;
+	cout << "Beginning Search algorithm(s)" << endl;
 	cout << "------------" << endl;
 
 	// Get the first solution | FAST
 	//bool DFSResult = true;
-	bool DFSResult = DFS(stateAssignments);
 	//bool DFSResult = GreedySearch(stateAssignments);
+	vector<vector<State>> solutions = BeamSearch(stateAssignments, 3);
+	bool DFSResult = DFS(stateAssignments);
+	solutions.push_back(stateAssignments);
 
+	for (vector<State> SOLUTION : solutions)
+	{
+		printStateAssignments(SOLUTION);
+		cout << "--" << endl;
+	}
 	// Get best solution | TAKES HOURS
 	//DFSComplete(stateAssignments);
 
@@ -1640,7 +1873,7 @@ int main()
 	}
 
 	// We write the solution into a CSV file
-	writeSolution(SOLUTION);
+	writeSolution(solutions);
 
 
 	cout << endl;
