@@ -1359,6 +1359,31 @@ bool compareStateVectorByDate(vector<State> s1, vector<State> s2) {
 	return (s1Date < s2Date);
 }
 
+bool compareStateVectorByDateFullStack(vector<State> s1, vector<State> s2) {
+
+	time_t s1Date = 00000;
+	time_t s2Date = 00000;
+
+	// We traverse the states and get the sum of all values that are not -1
+	for (State STATE : s1)
+	{
+		if (STATE.value.id != -1)
+		{
+			s1Date = s1Date + STATE.value.date;
+		}
+	}
+
+	for (State STATE : s2)
+	{
+		if (STATE.value.id != -1)
+		{
+			s2Date = s2Date + STATE.value.date;
+		}
+	}
+
+	return (s1Date < s2Date);
+}
+
 vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKCandidates) {
 
 	// Auxiliary variable
@@ -1408,6 +1433,16 @@ void purgeSolutions(vector<vector<State>>& solutionsVector, Variable VARIABLE, i
 
 	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variablee
 	std::sort(solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDate);
+
+	// We get the K values from the vector
+	vector<vector<State>> auxVector(solutionsVector.begin(), solutionsVector.begin() + numberOfKCandidates);
+	solutionsVector = auxVector;
+}
+
+void purgeSolutionsFullStack(vector<vector<State>>& solutionsVector, Variable VARIABLE, int numberOfKCandidates) {
+
+	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variablee
+	std::sort(solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDateFullStack);
 
 	// We get the K values from the vector
 	vector<vector<State>> auxVector(solutionsVector.begin(), solutionsVector.begin() + numberOfKCandidates);
@@ -1654,7 +1689,7 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 
 		if (solutionsCopy.size() > numberOfKCandidates)
 		{
-			purgeSolutions(solutionsCopy, VARIABLE, numberOfKCandidates);
+			purgeSolutionsFullStack(solutionsCopy, VARIABLE, numberOfKCandidates);
 		}
 
 		solutionsVector = solutionsCopy;
