@@ -988,11 +988,11 @@ void populateMutex() {
 							// We add all combinations of the same employee at the duration of the task
 							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date <= VALUE1.date) && (VALUE1.date < task2FinishTime))
 							{
-								if (VARIABLE1.task.name.compare("Testing") == 0)
+								/*if (VARIABLE1.task.name.compare("Verification") == 0)
 								{
-									//cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
-									//cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
-								}
+									cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+									cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
+								}*/
 
 								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
 								temporalMutexValueVector.push_back(temporalMutexValuePair);
@@ -1000,7 +1000,7 @@ void populateMutex() {
 							}
 							// We add all the combinations that have tasks that depend on the actual one and are done before it
 							else if (VARIABLE1.task.dependsOn(VARIABLE2.task.name) && (VALUE1.date < task2FinishTime)) {
-								/*if (VARIABLE1.task.name.compare("Programming Testing") == 0)
+								/*if (VARIABLE1.task.name.compare("Verification") == 0)
 								{
 									cout << "2. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
 									cout << "Task " << VARIABLE1.task.name << " depends on " << VARIABLE2.task.name << endl;
@@ -1605,12 +1605,25 @@ bool GreedySearch(vector<State>& stateAssignments) {
 	return true;
 }
 
-vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKCandidates) {
+vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKCandidates, int beamMode) {
 	// For each value that is compatible with the current one, we choose the most favorable one
 	// We compute the heuristic calculation, it being the state with the lowest time in the latest instantitead task
 	// We do this with various instantiations at a time
 
 	cout << "Beginning Beam Search" << endl;
+	switch (beamMode)
+	{
+	case 1:
+		cout << "Chosen algorithm: 1" << endl;
+		break;
+	case 2:
+		cout << "Chosen algorithm: 2" << endl;
+		break;
+	default:
+		// Default algorithm is number 1
+		cout << "Chosen algorithm: 1" << endl;
+		break;
+	}
 	cout << "------" << endl;
 
 	// List of vectors of solutions
@@ -1622,8 +1635,8 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 	// For each variable
 	for (Variable VARIABLE : VARIABLES)
 	{
-		cout << "Number of solution vectors: " << solutionsVector.size() << endl;
-		cout << endl;
+		/*cout << "Number of solution vectors: " << solutionsVector.size() << endl;
+		cout << endl;*/
 
 		vector<Value> candidateValues;
 		tempState.variable = VARIABLE;
@@ -1634,7 +1647,7 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 		for (vector<State> VECTOR : solutionsVector)
 		{
 
-			cout << "Comprobando vector: " << endl;
+			//cout << "Comprobando vector: " << endl;
 			//printStateAssignments(VECTOR);
 
 			// We iterate through all of the values of its domain that are compatible with the already instantiated variable
@@ -1657,25 +1670,27 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 			// We get the K best values
 			candidateValues = getMostFavourableValues(candidateValues, numberOfKCandidates);
 
-			cout << "Values are: ";
+			/*cout << "Values are: ";
 			for (Value VALUE: candidateValues)
 			{
 				cout << VALUE.id << " ";
 			}
-			cout << endl;
+			cout << endl;*/
 
 			// We push the K best values into new assignments
 			pushAssignedValues(candidateValues, VARIABLE, VECTOR, solutionsCopy);
 
+			// We clear the contents of candidateValues for the next vector of states
+			candidateValues.clear();
 			
-			for (vector<State> VECTOR : solutionsCopy)
+			/*for (vector<State> VECTOR : solutionsCopy)
 			{
 				cout << "- Solution after Values -" << endl;
 				printStateAssignments(VECTOR);
-			}
+			}*/
 
-			cout << "-- Vector of states finished --" << endl;
-			cout << endl;
+			/*cout << "-- Vector of states finished --" << endl;
+			cout << endl;*/
 		}
 
 		cout << "-- Variable finished " << VARIABLE.task.name << " --" << endl;
@@ -1687,9 +1702,24 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 			printStateAssignments(solution);
 		}*/
 
+
+		// We keep only the K best solutions according to the chosen algorithm
 		if (solutionsCopy.size() > numberOfKCandidates)
 		{
-			purgeSolutionsFullStack(solutionsCopy, VARIABLE, numberOfKCandidates);
+			switch (beamMode)
+			{
+			case 1:
+				purgeSolutions(solutionsCopy, VARIABLE, numberOfKCandidates);
+				break;
+			case 2:
+				purgeSolutionsFullStack(solutionsCopy, VARIABLE, numberOfKCandidates);
+				break;
+			default:
+				// Default algorithm is number 1
+				purgeSolutions(solutionsCopy, VARIABLE, numberOfKCandidates);
+				break;
+			}
+			
 		}
 
 		solutionsVector = solutionsCopy;
@@ -1893,17 +1923,23 @@ int main()
 	/* We create a vector of States with unassigned Variables */
 	vector<State> stateAssignments = createStateVector();
 
-	/* DFS is started */
+	/* Search algorithms execution*/
 	cout << "Beginning Search algorithm(s)" << endl;
 	cout << "------------" << endl;
 
 	// Get the first solution | FAST
 	//bool DFSResult = true;
 	//bool DFSResult = GreedySearch(stateAssignments);
-	vector<vector<State>> solutions = BeamSearch(stateAssignments, 3);
+	vector<vector<State>> solutions = BeamSearch(stateAssignments, 3, 2);
+
+	cout << "Beginning DFS" << endl;
+	cout << "------------" << endl;
 	bool DFSResult = DFS(stateAssignments);
 	solutions.push_back(stateAssignments);
+	cout << endl;
 
+	cout << "Printing solutions" << endl;
+	cout << "------------" << endl;
 	for (vector<State> SOLUTION : solutions)
 	{
 		printStateAssignments(SOLUTION);
