@@ -14,6 +14,7 @@
 #include <set>
 #include <unordered_set>
 #include <map>
+#include <chrono>
 using namespace std;
 
 // Static variables not dependant on classes
@@ -1918,7 +1919,9 @@ int main()
 
 	}*/
 
+	std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
 	populateMutex();
+	std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
 
 	/* We create a vector of States with unassigned Variables */
 	vector<State> stateAssignments = createStateVector();
@@ -1930,11 +1933,15 @@ int main()
 	// Get the first solution | FAST
 	//bool DFSResult = true;
 	//bool DFSResult = GreedySearch(stateAssignments);
-	vector<vector<State>> solutions = BeamSearch(stateAssignments, 3, 2);
+	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
+	vector<vector<State>> solutions = BeamSearch(stateAssignments, 80, 1);
+	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
 
 	cout << "Beginning DFS" << endl;
 	cout << "------------" << endl;
+	std::chrono::steady_clock::time_point beginDFS = std::chrono::steady_clock::now();
 	bool DFSResult = DFS(stateAssignments);
+	std::chrono::steady_clock::time_point endDFS = std::chrono::steady_clock::now();
 	solutions.push_back(stateAssignments);
 	cout << endl;
 
@@ -1973,6 +1980,10 @@ int main()
 
 	// We write the solution into a CSV file
 	writeSolution(solutions);
+
+	std::cout << "Time elapsed Mutex = " << (std::chrono::duration_cast<std::chrono::microseconds>(endMutex - beginMutex).count()) / 1000000.0 << std::endl;
+	std::cout << "Time elapsed DFS = " << (std::chrono::duration_cast<std::chrono::microseconds>(endDFS - beginDFS).count()) / 1000000.0 << std::endl;
+	std::cout << "Time elapsed BS = " << (std::chrono::duration_cast<std::chrono::microseconds>(endBS - beginBS).count()) / 1000000.0 << std::endl;
 
 
 	cout << endl;
