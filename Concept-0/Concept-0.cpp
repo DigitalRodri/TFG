@@ -1395,7 +1395,7 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 	vector<Value> solutionVector;
 
 	// We first sort the array of dates
-	std::sort(valuesVector.begin(), valuesVector.end(), compareValuesByDate);
+	std::sort(std::execution::par, valuesVector.begin(), valuesVector.end(), compareValuesByDate);
 	
 	// Counter for how many distinct elements have been pushed
 	int counter = 0;
@@ -1437,7 +1437,7 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 void purgeSolutions(vector<vector<State>>& solutionsVector, Variable VARIABLE, int numberOfKCandidates) {
 
 	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variablee
-	std::sort(solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDate);
+	std::sort(std::execution::par, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDate);
 
 	// We get the K values from the vector
 	vector<vector<State>> auxVector(solutionsVector.begin(), solutionsVector.begin() + numberOfKCandidates);
@@ -1735,6 +1735,10 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 	cout << "End of the Beam search" << endl;
 	cout << endl;
 
+	// From the solution, we get the best 3 results given any K
+	Variable lastVariable = solutionsVector.back().back().variable;
+	purgeSolutions(solutionsVector, lastVariable, 3);
+
 	return solutionsVector;
 }
 
@@ -1868,7 +1872,7 @@ int main()
 
 	// Read both CSVs
 	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("employees.csv");
-	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks3.csv");
 
 	// We print both CSVs
 	//cout << "***Printing employee Data***" << endl;
@@ -1925,35 +1929,35 @@ int main()
 		counter++;
 	}
 
+	//std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
+	//vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread1;
+	//vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread2;
+	//
+	//
+	//auto result1 = std::async(populateMutexParallel, variablesTread1);
+	//auto result2 = std::async(populateMutexParallel, variablesTread2);
+	//
+	//
+	//// We get the results and terminate the threads
+	//resultThread1 = result1.get();
+	//resultThread2 = result2.get();
+
+	//// We insert the results in the MUTEX map
+
+	//for (auto PAIR : resultThread1)
+	//{
+	//	MUTEX.insert(PAIR);
+	//}
+
+	//for (auto PAIR : resultThread2)
+	//{
+	//	MUTEX.insert(PAIR);
+	//}
+	//std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
+
 	std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
-	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread1;
-	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread2;
-	
-	
-	auto result1 = std::async(populateMutexParallel, variablesTread1);
-	auto result2 = std::async(populateMutexParallel, variablesTread2);
-	
-	
-	// We get the results and terminate the threads
-	resultThread1 = result1.get();
-	resultThread2 = result2.get();
-
-	// We insert the results in the MUTEX map
-
-	for (auto PAIR : resultThread1)
-	{
-		MUTEX.insert(PAIR);
-	}
-
-	for (auto PAIR : resultThread2)
-	{
-		MUTEX.insert(PAIR);
-	}
-	std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
-
-	/*std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
 	populateMutex();
-	std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();*/
+	std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
 
 	/* We create a vector of States with unassigned Variables */
 	vector<State> stateAssignments = createStateVector();
@@ -1966,7 +1970,7 @@ int main()
 	//bool DFSResult = true;
 	//bool DFSResult = GreedySearch(stateAssignments);
 	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
-	vector<vector<State>> solutions = BeamSearch(stateAssignments, 3, 1);
+	vector<vector<State>> solutions = BeamSearch(stateAssignments, 400, 1);
 	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
 
 	cout << "Beginning DFS" << endl;

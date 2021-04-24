@@ -1,9 +1,15 @@
 Employee,Task,Date,Duration,Employee,Task,Date,Duration,Employee,Task,Date,Duration,Employee,Task,Date,Duration
 Sergio,Concept,2021-02-22T09:00:00,7,Sergio,Concept,2021-02-22T09:00:00,7,Sergio,Concept,2021-02-22T09:00:00,7,Rodrigo,Concept,2021-02-22T09:00:00,8
-Arturo,Design,2021-02-22T16:00:00,10,Arturo,Design,2021-02-22T16:00:00,10,Arturo,Design,2021-02-22T16:00:00,10,Arturo,Design,2021-02-23T09:00:00,10
-Sergio,Validation,2021-02-24T10:00:00,5,Sergio,Validation,2021-02-24T10:00:00,5,Sergio,Validation,2021-02-24T10:00:00,5,Sergio,Validation,2021-02-24T11:00:00,5
-Arturo,Implementation,2021-02-24T15:00:00,20,Arturo,Implementation,2021-02-24T15:00:00,20,Arturo,Implementation,2021-02-24T15:00:00,20,Arturo,Implementation,2021-02-24T16:00:00,20
-Arturo,Verification,2021-03-01T11:00:00,5,Arturo,Verification,2021-03-01T11:00:00,5,Arturo,Verification,2021-03-01T11:00:00,5,Arturo,Verification,2021-03-01T12:00:00,5
-Arturo,Testing,2021-03-01T16:00:00,6,Arturo,Testing,2021-03-01T16:00:00,6,Arturo,Testing,2021-03-01T16:00:00,6,Rodrigo,Testing,2021-03-02T09:00:00,8
-Rodrigo,Release,2021-03-02T14:00:00,6,Arturo,Release,2021-03-02T14:00:00,5,Sergio,Release,2021-03-02T14:00:00,8,Rodrigo,Release,2021-03-03T09:00:00,6
--,Finish,2021-03-03T12:00:00,-,-,Finish,2021-03-03T11:00:00,-,-,Finish,2021-03-03T14:00:00,-,-,Finish,2021-03-03T15:00:00,-
+Rodrigo,Environmental Design,2021-02-23T11:00:00,10,Rodrigo,Environmental Design,2021-02-23T10:00:00,10,Rodrigo,Environmental Design,2021-02-24T16:00:00,10,Rodrigo,Environmental Design,2021-02-23T09:00:00,10
+Rodrigo,Character Design,2021-02-23T10:00:00,7,Rodrigo,Character Design,2021-02-23T09:00:00,7,Rodrigo,Character Design,2021-02-23T09:00:00,7,Rodrigo,Character Design,2021-02-24T11:00:00,7
+Rodrigo,Level Design,2021-02-22T16:00:00,15,Rodrigo,Level Design,2021-02-22T16:00:00,15,Rodrigo,Level Design,2021-02-22T16:00:00,15,Rodrigo,Level Design,2021-02-25T10:00:00,15
+Sergio,Music Aligment,2021-02-23T09:00:00,14,Sergio,Music Aligment,2021-02-23T09:00:00,14,Sergio,Music Aligment,2021-02-23T09:00:00,14,Sergio,Music Aligment,2021-02-23T09:00:00,14
+Sergio,Music Late Motifs,2021-02-22T16:00:00,10,Sergio,Music Late Motifs,2021-02-22T16:00:00,10,Sergio,Music Late Motifs,2021-02-22T16:00:00,10,Sergio,Music Late Motifs,2021-02-24T15:00:00,10
+Arturo,Combat Programming,2021-02-24T15:00:00,10,Arturo,Combat Programming,2021-02-24T15:00:00,10,Arturo,Combat Programming,2021-02-24T15:00:00,10,Arturo,Combat Programming,2021-03-01T09:00:00,10
+Arturo,World Programming,2021-02-22T16:00:00,7,Arturo,World Programming,2021-02-22T16:00:00,7,Arturo,World Programming,2021-02-22T16:00:00,7,Arturo,World Programming,2021-02-23T09:00:00,7
+Arturo,Inventory Programming,2021-02-23T15:00:00,6,Arturo,Inventory Programming,2021-02-23T15:00:00,6,Arturo,Inventory Programming,2021-02-23T15:00:00,6,Arturo,Inventory Programming,2021-02-23T16:00:00,6
+Sergio,Music Testing,2021-02-25T10:00:00,4,Sergio,Music Testing,2021-02-24T15:00:00,4,Sergio,Music Testing,2021-02-25T09:00:00,4,Sergio,Music Testing,2021-02-26T09:00:00,4
+Arturo,Programming Testing,2021-02-26T09:00:00,8,Arturo,Programming Testing,2021-02-26T09:00:00,8,Arturo,Programming Testing,2021-02-26T09:00:00,8,Arturo,Programming Testing,2021-03-02T11:00:00,8
+Rodrigo,Design Testing,2021-02-25T10:00:00,6,Rodrigo,Design Testing,2021-02-24T15:00:00,6,Rodrigo,Design Testing,2021-02-24T15:00:00,6,Rodrigo,Design Testing,2021-03-01T09:00:00,6
+Arturo,Release,2021-03-01T09:00:00,3,Rodrigo,Release,2021-03-01T09:00:00,2,Rodrigo,Release,2021-03-01T09:00:00,2,Rodrigo,Release,2021-03-03T11:00:00,2
+-,Finish,2021-03-01T12:00:00,-,-,Finish,2021-03-01T11:00:00,-,-,Finish,2021-03-01T11:00:00,-,-,Finish,2021-03-03T13:00:00,-
