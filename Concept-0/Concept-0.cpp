@@ -1308,6 +1308,7 @@ void writeSolution(vector<vector<State>> stateAssignments) {
 		taskData.clear();
 		dateData.clear();
 		durationData.clear();
+		lastStateDate = 00000;
 
 	}
 
@@ -1466,7 +1467,7 @@ void purgeSolutions(vector<vector<State>>& solutionsVector, Variable VARIABLE, i
 void purgeSolutionsFullStack(vector<vector<State>>& solutionsVector, Variable VARIABLE, int numberOfKCandidates) {
 
 	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variablee
-	std::sort(std::execution::seq, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDateFullStack);
+	std::sort(std::execution::par_unseq, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDateFullStack);
 
 	// We get the K values from the vector
 	vector<vector<State>> auxVector(solutionsVector.begin(), solutionsVector.begin() + numberOfKCandidates);
@@ -2019,7 +2020,7 @@ int main()
 	//bool DFSResult = true;
 	//bool DFSResult = GreedySearch(stateAssignments);
 	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
-	vector<vector<State>> solutionsBS = BeamSearch(stateAssignments, 30, 2, 3);
+	vector<vector<State>> solutionsBS = BeamSearch(stateAssignments, 300, 2, 1);
 	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
 
 	// We add the BS solutions to the vector
