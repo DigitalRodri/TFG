@@ -1,0 +1,4 @@
+Name,Duration,Compatibility,Dependencies
+Concept,8 | 7 | 7,CEO|CTO|CPO,-
+Design,10,CTO,Concept
+Validation,5,CPO,Design

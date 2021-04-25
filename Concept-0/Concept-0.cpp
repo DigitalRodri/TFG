@@ -1368,6 +1368,8 @@ bool compareStateVectorByDateFullStack(vector<State> s1, vector<State> s2) {
 
 	time_t s1Date = 00000;
 	time_t s2Date = 00000;
+	int counter1 = 0;
+	int counter2 = 0;
 
 	// We traverse the states and get the sum of all values that are not -1
 	for (State STATE : s1)
@@ -1375,6 +1377,7 @@ bool compareStateVectorByDateFullStack(vector<State> s1, vector<State> s2) {
 		if (STATE.value.id != -1)
 		{
 			s1Date = s1Date + STATE.value.date;
+			counter1++;
 		}
 	}
 
@@ -1383,10 +1386,19 @@ bool compareStateVectorByDateFullStack(vector<State> s1, vector<State> s2) {
 		if (STATE.value.id != -1)
 		{
 			s2Date = s2Date + STATE.value.date;
+			counter2++;
 		}
 	}
-
-	return (s1Date < s2Date);
+	
+	// If one vector had more assigned states than the other, the comparison cant be real and thus we return false
+	if (counter1 == counter2)
+	{
+		return (s1Date < s2Date);
+	}
+	else {
+		return false;
+	}
+	
 }
 
 vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKCandidates) {
@@ -1395,7 +1407,7 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 	vector<Value> solutionVector;
 
 	// We first sort the array of dates
-	std::sort(std::execution::par, valuesVector.begin(), valuesVector.end(), compareValuesByDate);
+	std::sort(std::execution::seq, valuesVector.begin(), valuesVector.end(), compareValuesByDate);
 	
 	// Counter for how many distinct elements have been pushed
 	int counter = 0;
@@ -1416,6 +1428,7 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 		// If it isnt duplicate we push it
 		if (duplicate == false)
 		{
+			//cout << "Pushing value: " << valuesVector.at(i).id << endl;
 			solutionVector.push_back(valuesVector.at(i));
 			counter++;
 		}
@@ -1437,7 +1450,7 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 void purgeSolutions(vector<vector<State>>& solutionsVector, Variable VARIABLE, int numberOfKCandidates) {
 
 	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variablee
-	std::sort(std::execution::par, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDate);
+	std::sort(std::execution::seq, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDate);
 
 	// We get the K values from the vector
 	vector<vector<State>> auxVector(solutionsVector.begin(), solutionsVector.begin() + numberOfKCandidates);
@@ -1447,7 +1460,7 @@ void purgeSolutions(vector<vector<State>>& solutionsVector, Variable VARIABLE, i
 void purgeSolutionsFullStack(vector<vector<State>>& solutionsVector, Variable VARIABLE, int numberOfKCandidates) {
 
 	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variablee
-	std::sort(solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDateFullStack);
+	std::sort(std::execution::seq, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDateFullStack);
 
 	// We get the K values from the vector
 	vector<vector<State>> auxVector(solutionsVector.begin(), solutionsVector.begin() + numberOfKCandidates);
@@ -1610,7 +1623,7 @@ bool GreedySearch(vector<State>& stateAssignments) {
 	return true;
 }
 
-vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKCandidates, int beamMode) {
+vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKCandidates, int beamMode, int wantedSolutions) {
 	// For each value that is compatible with the current one, we choose the most favorable one
 	// We compute the heuristic calculation, it being the state with the lowest time in the latest instantitead task
 	// We do this with various instantiations at a time
@@ -1674,6 +1687,7 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 
 			// We get the K best values
 			candidateValues = getMostFavourableValues(candidateValues, numberOfKCandidates);
+			//cout << "There are " << candidateValues.size() << " candidates" << endl;
 
 			/*cout << "Values are: ";
 			for (Value VALUE: candidateValues)
@@ -1711,6 +1725,7 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 		// We keep only the K best solutions according to the chosen algorithm
 		if (solutionsCopy.size() > numberOfKCandidates)
 		{
+			cout << "Purging vector of size: " << solutionsCopy.size() << endl;
 			switch (beamMode)
 			{
 			case 1:
@@ -1737,7 +1752,7 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 
 	// From the solution, we get the best 3 results given any K
 	Variable lastVariable = solutionsVector.back().back().variable;
-	purgeSolutions(solutionsVector, lastVariable, 3);
+	purgeSolutions(solutionsVector, lastVariable, wantedSolutions);
 
 	return solutionsVector;
 }
@@ -1753,6 +1768,7 @@ vector<State> createStateVector() {
 	{
 		auxState.variable = VARIABLE;
 		auxState.value.id = -1;
+		auxState.value.employee.name = "Empty";
 		stateAssignments.push_back(auxState);
 
 		counter++;
@@ -1970,7 +1986,7 @@ int main()
 	//bool DFSResult = true;
 	//bool DFSResult = GreedySearch(stateAssignments);
 	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
-	vector<vector<State>> solutions = BeamSearch(stateAssignments, 400, 1);
+	vector<vector<State>> solutions = BeamSearch(stateAssignments, 1000, 2, 3);
 	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
 
 	cout << "Beginning DFS" << endl;
