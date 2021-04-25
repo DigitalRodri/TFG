@@ -1269,7 +1269,13 @@ void writeSolution(vector<vector<State>> stateAssignments) {
 			// If there was no SCRUM implementation, we make the calculation of the finish Date
 			if (scrumTime == -1)
 			{
-				lastStateDate = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+				// We replace it only if it is after the already calculated one
+				time_t lastStateDateTemp = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+				if (lastStateDateTemp > lastStateDate)
+				{
+					lastStateDate = lastStateDateTemp;
+				}
+				 
 			}
 
 		}
@@ -1887,8 +1893,8 @@ int main()
 	/* Reading CSV test */
 
 	// Read both CSVs
-	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("employees.csv");
-	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks3.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("11employees.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("26tasks.csv");
 
 	// We print both CSVs
 	//cout << "***Printing employee Data***" << endl;
@@ -1982,12 +1988,7 @@ int main()
 	cout << "Beginning Search algorithm(s)" << endl;
 	cout << "------------" << endl;
 
-	// Get the first solution | FAST
-	//bool DFSResult = true;
-	//bool DFSResult = GreedySearch(stateAssignments);
-	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
-	vector<vector<State>> solutions = BeamSearch(stateAssignments, 1000, 2, 3);
-	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
+	vector<vector<State>> solutions;
 
 	cout << "Beginning DFS" << endl;
 	cout << "------------" << endl;
@@ -1997,16 +1998,7 @@ int main()
 	solutions.push_back(stateAssignments);
 	cout << endl;
 
-	cout << "Printing solutions" << endl;
-	cout << "------------" << endl;
-	for (vector<State> SOLUTION : solutions)
-	{
-		printStateAssignments(SOLUTION);
-		cout << "--" << endl;
-	}
-	// Get best solution | TAKES HOURS
-	//DFSComplete(stateAssignments);
-
+	// If DFS is not succesful, BS wont be
 	if (DFSResult == true)
 	{
 		cout << "*////////////////////*" << endl;
@@ -2019,8 +2011,32 @@ int main()
 		cout << endl;
 		cout << "***DFS FAILURE***" << endl;
 		cout << "Not enough time to finish the project perhaps?" << endl;
+		return -1;
 		cout << endl;
 	}
+
+	// Get the first solution | FAST
+	//bool DFSResult = true;
+	//bool DFSResult = GreedySearch(stateAssignments);
+	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
+	vector<vector<State>> solutionsBS = BeamSearch(stateAssignments, 30, 2, 3);
+	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
+
+	// We add the BS solutions to the vector
+	for (auto SOLUTION : solutionsBS)
+	{
+		solutions.push_back(SOLUTION);
+	}
+
+	cout << "Printing solutions" << endl;
+	cout << "------------" << endl;
+	for (vector<State> SOLUTION : solutions)
+	{
+		printStateAssignments(SOLUTION);
+		cout << "--" << endl;
+	}
+	// Get best solution | TAKES HOURS
+	//DFSComplete(stateAssignments);
 
 	SOLUTION = stateAssignments;
 

@@ -1,0 +1,26 @@
+Name,Duration,Compatibility,Dependencies
+Concept,8,CEO,-
+Environmental Design,10,Programmer,Concept
+Character Design,9,Designer,Concept
+Level Design,15,Designer,Concept
+Music Aligment,18,Designer,Concept
+Music Late Motifs,14,Designer,Concept
+Combat Programming,15,Programmer,Music Late Motifs | Level Design
+World Programming,10,Programmer,Concept
+Inventory Programming,10,Programmer,Concept
+Music Testing,7,Programmer,Music Late Motifs
+Programming Testing,10,Programmer,Inventory Programming
+Design Testing,12,Programmer,Level Design
+Legal Preparation,15,Lawyer,Concept
+Copyright Research,7,Lawyer,Concept
+Patent Infrigement,8,Lawyer,Concept
+IP Registration,12,Lawyer,Concept
+Competition,6,Marketing,Concept
+Advertisements,15,Marketing,Concept
+Influencer Contracts,20,Marketing,Concept
+IRPF Management,10,RRHH,SS Contracts
+SS Contracts,10,RRHH,Concept
+Expansion Investigation,8,RRHH,Concept
+Monthly Expenditure,7,Accounting,Concept
+Investments Payoff,21,Accounting,Concept
+Future Viability,10,Accounting,Concept
