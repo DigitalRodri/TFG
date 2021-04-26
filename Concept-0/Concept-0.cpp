@@ -1036,6 +1036,177 @@ void populateMutex() {
 
 }
 
+void callMutexParallel(int numberOfThreads) {
+
+	// First we calulate the number of Variables per Thread
+	int variableNumberFirstThreads = VARIABLES.size() / numberOfThreads;
+	int variableNumberLastThread = VARIABLES.size() % numberOfThreads;
+
+	// If there is no remainder, the division is clean and we have the same number of Variables in all threads
+	if (variableNumberFirstThreads == 0)
+	{
+		variableNumberLastThread = variableNumberFirstThreads;
+	}
+	// If there is remainder, the last thread has the same number as the rest of the threads but with the remainder added
+	else {
+		variableNumberLastThread += variableNumberFirstThreads;
+	}
+
+	vector<vector<Variable>> variablesVector;
+	vector<Variable> tempVariableVector;
+	vector<Variable> variablesTread2;
+	vector<Variable> variablesTread3;
+	vector<Variable> variablesTread4;
+	vector<Variable> variablesTread5;
+	vector<Variable> variablesTread6;
+	int counter = 0;
+	int counterBatch = 0;
+	int lastBatch = VARIABLES.size() - variableNumberLastThread;
+
+	// We populate the Variable vectors
+	for (Variable VARIABLE : VARIABLES)
+	{
+		// If we are not in the last batch of Variables for the last thread, we push and count
+		if (counter < lastBatch) {
+			tempVariableVector.push_back(VARIABLE);
+			counterBatch++;
+		}
+		else {
+			tempVariableVector.push_back(VARIABLE);
+		}
+
+		// If we have filled the vector with enough Variables, we push it and clear it
+		if (counterBatch == variableNumberFirstThreads && counter < lastBatch)
+		{
+			variablesVector.push_back(tempVariableVector);
+			tempVariableVector.clear();
+			counterBatch = 0;
+		}
+
+		counter++;
+	}
+
+	// We push the last batch of Variables
+	variablesVector.push_back(tempVariableVector);
+
+	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread1;
+	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread2;
+	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread3;
+	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread4;
+	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread5;
+	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread6;
+
+	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result1;
+	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result2;
+	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result3;
+	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result4;
+	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result5;
+	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result6;
+
+	if (numberOfThreads == 2)
+	{
+		result1 = std::async(populateMutexParallel, variablesVector.at(0));
+		result2 = std::async(populateMutexParallel, variablesVector.at(1));
+		resultThread1 = result1.get();
+		resultThread2 = result2.get();
+	}
+	else if (numberOfThreads == 4)
+	{
+
+		result1 = std::async(populateMutexParallel, variablesVector.at(0));
+		result2 = std::async(populateMutexParallel, variablesVector.at(1));
+		result3 = std::async(populateMutexParallel, variablesVector.at(2));
+		result4 = std::async(populateMutexParallel, variablesVector.at(3));
+		resultThread1 = result1.get();
+		resultThread2 = result2.get();
+		resultThread3 = result3.get();
+		resultThread4 = result4.get();
+	}
+	else if (numberOfThreads == 6)
+	{
+		result1 = std::async(populateMutexParallel, variablesVector.at(0));
+		result2 = std::async(populateMutexParallel, variablesVector.at(1));
+		result3 = std::async(populateMutexParallel, variablesVector.at(2));
+		result4 = std::async(populateMutexParallel, variablesVector.at(3));
+		result5 = std::async(populateMutexParallel, variablesVector.at(4));
+		result6 = std::async(populateMutexParallel, variablesVector.at(5));
+		resultThread1 = result1.get();
+		resultThread2 = result2.get();
+		resultThread3 = result3.get();
+		resultThread4 = result4.get();
+		resultThread4 = result5.get();
+		resultThread4 = result6.get();
+	}
+	
+
+	// Depending on the number of threads, we call so many and get their results
+	/*switch (numberOfThreads)
+	{
+	case(2):
+		result1 = std::async(populateMutexParallel, variablesVector.at(0));
+		result2 = std::async(populateMutexParallel, variablesVector.at(1));
+		resultThread1 = result1.get();
+		resultThread2 = result2.get();
+	case(4):
+		result1 = std::async(populateMutexParallel, variablesVector.at(0));
+		result2 = std::async(populateMutexParallel, variablesVector.at(1));
+		result3 = std::async(populateMutexParallel, variablesVector.at(2));
+		result4 = std::async(populateMutexParallel, variablesVector.at(3));
+		resultThread1 = result1.get();
+		resultThread2 = result2.get();
+		resultThread3 = result3.get();
+		resultThread4 = result4.get();
+	case(6):
+		result1 = std::async(populateMutexParallel, variablesVector.at(0));
+		result2 = std::async(populateMutexParallel, variablesVector.at(1));
+		result3 = std::async(populateMutexParallel, variablesVector.at(2));
+		result4 = std::async(populateMutexParallel, variablesVector.at(3));
+		result5 = std::async(populateMutexParallel, variablesVector.at(4));
+		result6 = std::async(populateMutexParallel, variablesVector.at(5));
+		resultThread1 = result1.get();
+		resultThread2 = result2.get();
+		resultThread3 = result3.get();
+		resultThread4 = result4.get();
+		resultThread4 = result5.get();
+		resultThread4 = result6.get();
+	default:
+		break;
+	}*/
+
+	// We insert the results in the MUTEX map
+
+	for (auto PAIR : resultThread1)
+	{
+		MUTEX.insert(PAIR);
+	}
+
+	for (auto PAIR : resultThread2)
+	{
+		MUTEX.insert(PAIR);
+	}
+
+	for (auto PAIR : resultThread3)
+	{
+		MUTEX.insert(PAIR);
+	}
+
+	for (auto PAIR : resultThread4)
+	{
+		MUTEX.insert(PAIR);
+	}
+
+	for (auto PAIR : resultThread5)
+	{
+		MUTEX.insert(PAIR);
+	}
+
+	for (auto PAIR : resultThread6)
+	{
+		MUTEX.insert(PAIR);
+	}
+
+}
+
 bool isMutex(State CURRENTSTATE, vector<State> stateAssignments) {
 
 	// For every assigned variable, we check if its assigned value is mutex with the input state
@@ -1925,62 +2096,12 @@ int main()
 	// Number of values = weeks*days*hours*employees
 	printDomains();
 
-	int numThreads = 2;
-	int variableNumberThread1 = VARIABLES.size() / numThreads;
-	int variableNumberThread2 = VARIABLES.size() % numThreads;
-
-	// If there is no remainder, the division is clean and we have the same number of Variables in both threads
-	if (variableNumberThread2 == 0)
-	{
-		variableNumberThread2 = variableNumberThread1;
-	}
-
-	vector<Variable> variablesTread1;
-	vector<Variable> variablesTread2;
-	int counter = 0;
-
-	// We populate the Variable vectors
-	for (Variable VARIABLE : VARIABLES)
-	{
-		if (counter < variableNumberThread1) {
-			variablesTread1.push_back(VARIABLE);
-		}
-		else {
-			variablesTread2.push_back(VARIABLE);
-		}
-
-		counter++;
-	}
-
-	//std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
-	//vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread1;
-	//vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread2;
-	//
-	//
-	//auto result1 = std::async(populateMutexParallel, variablesTread1);
-	//auto result2 = std::async(populateMutexParallel, variablesTread2);
-	//
-	//
-	//// We get the results and terminate the threads
-	//resultThread1 = result1.get();
-	//resultThread2 = result2.get();
-
-	//// We insert the results in the MUTEX map
-
-	//for (auto PAIR : resultThread1)
-	//{
-	//	MUTEX.insert(PAIR);
-	//}
-
-	//for (auto PAIR : resultThread2)
-	//{
-	//	MUTEX.insert(PAIR);
-	//}
-	//std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
-
 	std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
 	populateMutex();
+	//callMutexParallel(2);
 	std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
+
+	std::cout << "Time elapsed Mutex = " << (std::chrono::duration_cast<std::chrono::microseconds>(endMutex - beginMutex).count()) / 1000000.0 << std::endl;
 
 	/* We create a vector of States with unassigned Variables */
 	vector<State> stateAssignments = createStateVector();
@@ -2020,7 +2141,7 @@ int main()
 	//bool DFSResult = true;
 	//bool DFSResult = GreedySearch(stateAssignments);
 	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
-	vector<vector<State>> solutionsBS = BeamSearch(stateAssignments, 300, 2, 1);
+	vector<vector<State>> solutionsBS = BeamSearch(stateAssignments, 100, 2, 1);
 	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
 
 	// We add the BS solutions to the vector
