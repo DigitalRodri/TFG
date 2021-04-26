@@ -857,8 +857,6 @@ void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 }
 
 vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > populateMutexParallel(std::vector<Variable> inputVariables) {
-	cout << "Calculating mutex" << endl;
-	cout << "------------" << endl;
 
 	//thread_local int counter = 0;
 	thread_local vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultVector;
@@ -948,8 +946,6 @@ vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > po
 }
 
 void populateMutex() {
-	cout << "Calculating mutex" << endl;
-	cout << "------------" << endl;
 
 	//thread_local int counter = 0;
 	thread_local std::pair< pair<std::string, std::string>, vector<pair<int, int>> > temporalMutexPair;
@@ -1036,175 +1032,189 @@ void populateMutex() {
 
 }
 
-void callMutexParallel(int numberOfThreads) {
+int callMutex(int numberOfThreads) {
 
-	// First we calulate the number of Variables per Thread
-	int variableNumberFirstThreads = VARIABLES.size() / numberOfThreads;
-	int variableNumberLastThread = VARIABLES.size() % numberOfThreads;
-
-	// If there is no remainder, the division is clean and we have the same number of Variables in all threads
-	if (variableNumberFirstThreads == 0)
+	if (numberOfThreads == 1)
 	{
-		variableNumberLastThread = variableNumberFirstThreads;
+		cout << "Single-threaded Mutex" << endl;
+		populateMutex();
+		return 1;
 	}
-	// If there is remainder, the last thread has the same number as the rest of the threads but with the remainder added
-	else {
-		variableNumberLastThread += variableNumberFirstThreads;
-	}
-
-	vector<vector<Variable>> variablesVector;
-	vector<Variable> tempVariableVector;
-	vector<Variable> variablesTread2;
-	vector<Variable> variablesTread3;
-	vector<Variable> variablesTread4;
-	vector<Variable> variablesTread5;
-	vector<Variable> variablesTread6;
-	int counter = 0;
-	int counterBatch = 0;
-	int lastBatch = VARIABLES.size() - variableNumberLastThread;
-
-	// We populate the Variable vectors
-	for (Variable VARIABLE : VARIABLES)
+	else if (numberOfThreads == 2 || numberOfThreads == 4 || numberOfThreads == 6)
 	{
-		// If we are not in the last batch of Variables for the last thread, we push and count
-		if (counter < lastBatch) {
-			tempVariableVector.push_back(VARIABLE);
-			counterBatch++;
-		}
-		else {
-			tempVariableVector.push_back(VARIABLE);
-		}
+		cout << "Mutex with " << numberOfThreads << " threads" << endl;
 
-		// If we have filled the vector with enough Variables, we push it and clear it
-		if (counterBatch == variableNumberFirstThreads && counter < lastBatch)
+		// First we calulate the number of Variables per Thread
+		int variableNumberFirstThreads = VARIABLES.size() / numberOfThreads;
+		int variableNumberLastThread = VARIABLES.size() % numberOfThreads;
+
+		// If there is no remainder, the division is clean and we have the same number of Variables in all threads
+		if (variableNumberFirstThreads == 0)
 		{
-			variablesVector.push_back(tempVariableVector);
-			tempVariableVector.clear();
-			counterBatch = 0;
+			variableNumberLastThread = variableNumberFirstThreads;
+		}
+		// If there is remainder, the last thread has the same number as the rest of the threads but with the remainder added
+		else {
+			variableNumberLastThread += variableNumberFirstThreads;
 		}
 
-		counter++;
+		vector<vector<Variable>> variablesVector;
+		vector<Variable> tempVariableVector;
+		vector<Variable> variablesTread2;
+		vector<Variable> variablesTread3;
+		vector<Variable> variablesTread4;
+		vector<Variable> variablesTread5;
+		vector<Variable> variablesTread6;
+		int counter = 0;
+		int counterBatch = 0;
+		int lastBatch = VARIABLES.size() - variableNumberLastThread;
+
+		// We populate the Variable vectors
+		for (Variable VARIABLE : VARIABLES)
+		{
+			// If we are not in the last batch of Variables for the last thread, we push and count
+			if (counter < lastBatch) {
+				tempVariableVector.push_back(VARIABLE);
+				counterBatch++;
+			}
+			else {
+				tempVariableVector.push_back(VARIABLE);
+			}
+
+			// If we have filled the vector with enough Variables, we push it and clear it
+			if (counterBatch == variableNumberFirstThreads && counter < lastBatch)
+			{
+				variablesVector.push_back(tempVariableVector);
+				tempVariableVector.clear();
+				counterBatch = 0;
+			}
+
+			counter++;
+		}
+
+		// We push the last batch of Variables
+		variablesVector.push_back(tempVariableVector);
+
+		vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread1;
+		vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread2;
+		vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread3;
+		vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread4;
+		vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread5;
+		vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread6;
+
+		std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result1;
+		std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result2;
+		std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result3;
+		std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result4;
+		std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result5;
+		std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result6;
+
+		if (numberOfThreads == 2)
+		{
+			result1 = std::async(populateMutexParallel, variablesVector.at(0));
+			result2 = std::async(populateMutexParallel, variablesVector.at(1));
+			resultThread1 = result1.get();
+			resultThread2 = result2.get();
+		}
+		else if (numberOfThreads == 4)
+		{
+
+			result1 = std::async(populateMutexParallel, variablesVector.at(0));
+			result2 = std::async(populateMutexParallel, variablesVector.at(1));
+			result3 = std::async(populateMutexParallel, variablesVector.at(2));
+			result4 = std::async(populateMutexParallel, variablesVector.at(3));
+			resultThread1 = result1.get();
+			resultThread2 = result2.get();
+			resultThread3 = result3.get();
+			resultThread4 = result4.get();
+		}
+		else if (numberOfThreads == 6)
+		{
+			result1 = std::async(populateMutexParallel, variablesVector.at(0));
+			result2 = std::async(populateMutexParallel, variablesVector.at(1));
+			result3 = std::async(populateMutexParallel, variablesVector.at(2));
+			result4 = std::async(populateMutexParallel, variablesVector.at(3));
+			result5 = std::async(populateMutexParallel, variablesVector.at(4));
+			result6 = std::async(populateMutexParallel, variablesVector.at(5));
+			resultThread1 = result1.get();
+			resultThread2 = result2.get();
+			resultThread3 = result3.get();
+			resultThread4 = result4.get();
+			resultThread5 = result5.get();
+			resultThread6 = result6.get();
+		}
+
+
+		// Depending on the number of threads, we call so many and get their results
+		/*switch (numberOfThreads)
+		{
+		case(2):
+			result1 = std::async(populateMutexParallel, variablesVector.at(0));
+			result2 = std::async(populateMutexParallel, variablesVector.at(1));
+			resultThread1 = result1.get();
+			resultThread2 = result2.get();
+		case(4):
+			result1 = std::async(populateMutexParallel, variablesVector.at(0));
+			result2 = std::async(populateMutexParallel, variablesVector.at(1));
+			result3 = std::async(populateMutexParallel, variablesVector.at(2));
+			result4 = std::async(populateMutexParallel, variablesVector.at(3));
+			resultThread1 = result1.get();
+			resultThread2 = result2.get();
+			resultThread3 = result3.get();
+			resultThread4 = result4.get();
+		case(6):
+			result1 = std::async(populateMutexParallel, variablesVector.at(0));
+			result2 = std::async(populateMutexParallel, variablesVector.at(1));
+			result3 = std::async(populateMutexParallel, variablesVector.at(2));
+			result4 = std::async(populateMutexParallel, variablesVector.at(3));
+			result5 = std::async(populateMutexParallel, variablesVector.at(4));
+			result6 = std::async(populateMutexParallel, variablesVector.at(5));
+			resultThread1 = result1.get();
+			resultThread2 = result2.get();
+			resultThread3 = result3.get();
+			resultThread4 = result4.get();
+			resultThread4 = result5.get();
+			resultThread4 = result6.get();
+		default:
+			break;
+		}*/
+
+		// We insert the results in the MUTEX map
+
+		for (auto PAIR : resultThread1)
+		{
+			MUTEX.insert(PAIR);
+		}
+
+		for (auto PAIR : resultThread2)
+		{
+			MUTEX.insert(PAIR);
+		}
+
+		for (auto PAIR : resultThread3)
+		{
+			MUTEX.insert(PAIR);
+		}
+
+		for (auto PAIR : resultThread4)
+		{
+			MUTEX.insert(PAIR);
+		}
+
+		for (auto PAIR : resultThread5)
+		{
+			MUTEX.insert(PAIR);
+		}
+
+		for (auto PAIR : resultThread6)
+		{
+			MUTEX.insert(PAIR);
+		}
+
+		return 1;
 	}
 
-	// We push the last batch of Variables
-	variablesVector.push_back(tempVariableVector);
-
-	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread1;
-	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread2;
-	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread3;
-	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread4;
-	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread5;
-	vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > resultThread6;
-
-	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result1;
-	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result2;
-	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result3;
-	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result4;
-	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result5;
-	std::future<vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > >> result6;
-
-	if (numberOfThreads == 2)
-	{
-		result1 = std::async(populateMutexParallel, variablesVector.at(0));
-		result2 = std::async(populateMutexParallel, variablesVector.at(1));
-		resultThread1 = result1.get();
-		resultThread2 = result2.get();
-	}
-	else if (numberOfThreads == 4)
-	{
-
-		result1 = std::async(populateMutexParallel, variablesVector.at(0));
-		result2 = std::async(populateMutexParallel, variablesVector.at(1));
-		result3 = std::async(populateMutexParallel, variablesVector.at(2));
-		result4 = std::async(populateMutexParallel, variablesVector.at(3));
-		resultThread1 = result1.get();
-		resultThread2 = result2.get();
-		resultThread3 = result3.get();
-		resultThread4 = result4.get();
-	}
-	else if (numberOfThreads == 6)
-	{
-		result1 = std::async(populateMutexParallel, variablesVector.at(0));
-		result2 = std::async(populateMutexParallel, variablesVector.at(1));
-		result3 = std::async(populateMutexParallel, variablesVector.at(2));
-		result4 = std::async(populateMutexParallel, variablesVector.at(3));
-		result5 = std::async(populateMutexParallel, variablesVector.at(4));
-		result6 = std::async(populateMutexParallel, variablesVector.at(5));
-		resultThread1 = result1.get();
-		resultThread2 = result2.get();
-		resultThread3 = result3.get();
-		resultThread4 = result4.get();
-		resultThread4 = result5.get();
-		resultThread4 = result6.get();
-	}
-	
-
-	// Depending on the number of threads, we call so many and get their results
-	/*switch (numberOfThreads)
-	{
-	case(2):
-		result1 = std::async(populateMutexParallel, variablesVector.at(0));
-		result2 = std::async(populateMutexParallel, variablesVector.at(1));
-		resultThread1 = result1.get();
-		resultThread2 = result2.get();
-	case(4):
-		result1 = std::async(populateMutexParallel, variablesVector.at(0));
-		result2 = std::async(populateMutexParallel, variablesVector.at(1));
-		result3 = std::async(populateMutexParallel, variablesVector.at(2));
-		result4 = std::async(populateMutexParallel, variablesVector.at(3));
-		resultThread1 = result1.get();
-		resultThread2 = result2.get();
-		resultThread3 = result3.get();
-		resultThread4 = result4.get();
-	case(6):
-		result1 = std::async(populateMutexParallel, variablesVector.at(0));
-		result2 = std::async(populateMutexParallel, variablesVector.at(1));
-		result3 = std::async(populateMutexParallel, variablesVector.at(2));
-		result4 = std::async(populateMutexParallel, variablesVector.at(3));
-		result5 = std::async(populateMutexParallel, variablesVector.at(4));
-		result6 = std::async(populateMutexParallel, variablesVector.at(5));
-		resultThread1 = result1.get();
-		resultThread2 = result2.get();
-		resultThread3 = result3.get();
-		resultThread4 = result4.get();
-		resultThread4 = result5.get();
-		resultThread4 = result6.get();
-	default:
-		break;
-	}*/
-
-	// We insert the results in the MUTEX map
-
-	for (auto PAIR : resultThread1)
-	{
-		MUTEX.insert(PAIR);
-	}
-
-	for (auto PAIR : resultThread2)
-	{
-		MUTEX.insert(PAIR);
-	}
-
-	for (auto PAIR : resultThread3)
-	{
-		MUTEX.insert(PAIR);
-	}
-
-	for (auto PAIR : resultThread4)
-	{
-		MUTEX.insert(PAIR);
-	}
-
-	for (auto PAIR : resultThread5)
-	{
-		MUTEX.insert(PAIR);
-	}
-
-	for (auto PAIR : resultThread6)
-	{
-		MUTEX.insert(PAIR);
-	}
-
+	return -1;
 }
 
 bool isMutex(State CURRENTSTATE, vector<State> stateAssignments) {
@@ -2065,7 +2075,7 @@ int main()
 	/* Reading CSV test */
 
 	// Read both CSVs
-	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("11employees.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("10employees.csv");
 	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("26tasks.csv");
 
 	// We print both CSVs
@@ -2096,10 +2106,24 @@ int main()
 	// Number of values = weeks*days*hours*employees
 	printDomains();
 
+	/*const auto processorCount = std::thread::hardware_concurrency();
+	std::cout << "Number of processors in the machine:" << processorCount << endl;*/
+
+	cout << "Calculating mutex" << endl;
+	cout << "------------" << endl;
 	std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
-	populateMutex();
-	//callMutexParallel(2);
+	int mutexResult = callMutex(1);
 	std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
+
+	if (mutexResult == -1)
+	{
+		cout << "*////////////////////*" << endl;
+		cout << endl;
+		cout << "***MUTEX FAILURE***" << endl;
+		cout << "Viable multithreading options are 1, 2, 4, or 6" << endl;
+		return -1;
+		cout << endl;
+	}
 
 	std::cout << "Time elapsed Mutex = " << (std::chrono::duration_cast<std::chrono::microseconds>(endMutex - beginMutex).count()) / 1000000.0 << std::endl;
 

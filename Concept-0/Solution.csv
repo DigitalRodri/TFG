@@ -1,13 +1,13 @@
 Employee,Task,Date,Duration,Employee,Task,Date,Duration
 Rodrigo,Concept,2021-02-22T09:00:00,8,Rodrigo,Concept,2021-02-22T09:00:00,8
-Arturo,Environmental Design,2021-02-23T09:00:00,10,Luis,Environmental Design,2021-02-23T09:00:00,10
+Arturo,Environmental Design,2021-02-23T09:00:00,10,Arturo,Environmental Design,2021-02-23T09:00:00,10
 Roberto,Character Design,2021-02-23T09:00:00,9,Roberto,Character Design,2021-02-23T12:00:00,9
 Roberto,Level Design,2021-02-24T10:00:00,15,Roberto,Level Design,2021-02-23T11:00:00,15
 Roberto,Music Aligment,2021-02-26T09:00:00,18,Roberto,Music Aligment,2021-02-23T10:00:00,18
 Roberto,Music Late Motifs,2021-03-01T11:00:00,14,Roberto,Music Late Motifs,2021-02-23T09:00:00,14
 Arturo,Combat Programming,2021-03-03T09:00:00,15,Luis,Combat Programming,2021-02-25T10:00:00,15
-Arturo,World Programming,2021-02-24T11:00:00,10,Arturo,World Programming,2021-02-23T09:00:00,10
-Arturo,Inventory Programming,2021-02-25T13:00:00,10,Sergio,Inventory Programming,2021-02-23T09:00:00,10
+Arturo,World Programming,2021-02-24T11:00:00,10,Sergio,World Programming,2021-02-23T09:00:00,10
+Arturo,Inventory Programming,2021-02-25T13:00:00,10,Luis,Inventory Programming,2021-02-23T09:00:00,10
 Arturo,Music Testing,2021-03-04T16:00:00,7,Arturo,Music Testing,2021-02-24T15:00:00,7
 Arturo,Programming Testing,2021-02-26T15:00:00,10,Arturo,Programming Testing,2021-02-24T11:00:00,10
 Arturo,Design Testing,2021-03-02T09:00:00,12,Sergio,Design Testing,2021-02-25T10:00:00,12
