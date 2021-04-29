@@ -618,6 +618,271 @@ void printDomains() {
 	cout << endl;
 }
 
+time_t getFinishTime(int duration, time_t startTime) {
+
+	// Auxiliary variables
+	int taskDuration = duration;
+	size_t taskDays = taskDuration / hoursPerDay;
+	int remainder = taskDuration % hoursPerDay;
+	time_t timePlusDays = startTime;
+	time_t timeAtStart;
+	time_t timeAtFinish;
+	time_t finishTime;
+
+	// For printing and gettint specific measurements
+	struct tm tmtime;
+	struct tm tmtimeSCRUM;
+	char printBuffer[26];
+
+
+	/*if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
+	{
+		localtime_s(&tmtime, &startTime);
+		strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+		cout << "Task starts at: " << printBuffer << " with duration " << taskDuration << endl;
+	}*/
+
+
+	// If the task spans more than one labour day, we advance the days directly and add the remaining hours
+	if (taskDays != 0)
+	{
+		timePlusDays = timePlusDays + taskDays * (static_cast<unsigned __int64>(24)) * 3600;
+
+		// If SCRUM is enabled, we add as many hours as days we have advanced
+		if (scrumTime != -1)
+		{
+			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+			{
+				cout << "Added " << taskDays << " hour(s) and days" << endl;
+			}*/
+			timePlusDays = timePlusDays + taskDays * 3600;
+		}
+
+		localtime_s(&tmtime, &timePlusDays);
+
+		// We add the remainder hours
+		timePlusDays = timePlusDays + (static_cast<unsigned __int64>(remainder)) * 3600;
+
+		localtime_s(&tmtimeSCRUM, &timePlusDays);
+
+		// If we have crossed the daily scrum, we add an hour to the total time
+		if (tmtime.tm_hour <= scrumTime && tmtimeSCRUM.tm_hour > scrumTime)
+		{
+			timePlusDays = timePlusDays + 3600;
+		}
+
+		/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+		{
+			localtime_s(&tmtime, &timePlusDays);
+			strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+			cout << "Initial finish time with remainder: " << printBuffer << endl;
+		}*/
+	}
+	// If the task doesnt span more than a day, we add the original duration directly
+	else
+	{
+		localtime_s(&tmtime, &timePlusDays);
+		timePlusDays = timePlusDays + (static_cast<unsigned __int64>(taskDuration)) * 3600;
+		localtime_s(&tmtimeSCRUM, &timePlusDays);
+
+		// If we have crossed the daily scrum, we add an hour to the total time
+		if ((tmtime.tm_hour <= scrumTime) && (tmtimeSCRUM.tm_hour > scrumTime))
+		{
+			timePlusDays = timePlusDays + 3600;
+		}
+
+		/*if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
+		{
+			localtime_s(&tmtime, &timePlusDays);
+			strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+			cout << "Initial finish time with task duration: " << printBuffer << endl;
+		}*/
+
+	}
+
+	// We place the tmtime variable back to the last calculation we made
+	localtime_s(&tmtime, &timePlusDays);
+
+	// If we are in Saturday or Sunday, we advance until monday
+	// Saturday
+	if (tmtime.tm_wday == 6)
+	{
+		/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+		{
+			cout << "Advancing time from Saturday to Monday" << endl;
+		}*/
+
+		timePlusDays = timePlusDays + (static_cast<unsigned __int64>(48)) * 3600;
+	}
+	// Sunday
+	else if (tmtime.tm_wday == 0)
+	{
+		/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+		{
+			cout << "Advancing time Sunday to Monday" << endl;
+		}*/
+
+		timePlusDays = timePlusDays + (static_cast<unsigned __int64>(24)) * 3600;
+	}
+
+	finishTime = timePlusDays;
+
+	// We get the time at the schedule finish hour to calculate the remaining hours of the task in case we are out of the schedule
+	localtime_s(&tmtime, &timePlusDays);
+
+	// In the case we are at 00:00, we set the date to the previous day to correctly perform the calculation
+	if (tmtime.tm_hour == 0)
+	{
+		time_t auxTime = timePlusDays - 7200;
+		localtime_s(&tmtime, &auxTime);
+	}
+	tmtime.tm_hour = finishHour;
+	timeAtFinish = mktime(&tmtime);
+	time_t remainingHours = timePlusDays - timeAtFinish;
+
+	// We place the tmtime variable back to the last calculation we made
+	localtime_s(&tmtime, &timePlusDays);
+
+	// If we are out of labour hours and still in the same day, we move to the next day at the start time + remaining hours
+	if (tmtime.tm_hour > finishHour)
+	{
+		timePlusDays = timePlusDays + (static_cast<unsigned __int64>(24)) * 3600;
+		localtime_s(&tmtime, &timePlusDays);
+		tmtime.tm_hour = startHour;
+		timeAtStart = mktime(&tmtime);
+
+
+		localtime_s(&tmtime, &timeAtStart);
+		finishTime = timeAtStart + remainingHours;
+		localtime_s(&tmtimeSCRUM, &finishTime);
+
+		// If we have crossed the daily scrum, we add an hour to the total time
+		if ((tmtime.tm_hour <= scrumTime) && (tmtimeSCRUM.tm_hour > scrumTime))
+		{
+			finishTime = finishTime + 3600;
+			/*if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
+			{
+				cout << "Added 1h of SCRUM daily" << endl;
+			}*/
+		}
+
+		/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+		{
+			localtime_s(&tmtime, &finishTime);
+			strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+			cout << "1. Time advanced to: " << printBuffer << endl;
+		}*/
+	}
+	// If we are in the next day before labour, we move to the start time + remainding hours
+	else if (tmtime.tm_hour < startHour)
+	{
+		tmtime.tm_hour = startHour;
+		timeAtStart = mktime(&tmtime);
+
+		localtime_s(&tmtime, &timeAtStart);
+		finishTime = timeAtStart + remainingHours;
+		localtime_s(&tmtimeSCRUM, &finishTime);
+
+		// If we have crossed the daily scrum, we add an hour to the total time
+		if ((tmtime.tm_hour <= scrumTime) && (tmtimeSCRUM.tm_hour > scrumTime))
+		{
+			finishTime = finishTime + 3600;
+		}
+
+		/*if (task.name.compare("Testing") == 0 && role.compare("CEO") == 0)
+		{
+			localtime_s(&tmtime, &finishTime);
+			strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+			cout << "2. Time advanced to: " << printBuffer << endl;
+		}*/
+	}
+
+	// We get the pointer to the latest time definition
+	localtime_s(&tmtime, &finishTime);
+
+	// If we are in Saturday or Sunday, we advance until monday
+	// Saturday
+	if (tmtime.tm_wday == 6)
+	{
+		/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+		{
+			cout << "Advancing time from Saturday to Monday" << endl;
+		}*/
+
+		finishTime = finishTime + (static_cast<unsigned __int64>(48)) * 3600;
+	}
+	// Sunday
+	else if (tmtime.tm_wday == 0)
+	{
+		/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+		{
+			cout << "Advancing time Sunday to Monday" << endl;
+		}*/
+
+		finishTime = finishTime + (static_cast<unsigned __int64>(24)) * 3600;
+	}
+
+
+	/*if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
+	{
+		localtime_s(&tmtime, &finishTime);
+		strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
+		cout << "Final finish time: " << printBuffer << endl;
+	}*/
+
+	// We return the final finishTime
+	return finishTime;
+
+}
+
+int isEnoughWeeks(vector<Employee> employeeVector, vector<Task> taskVector) {
+
+	// We first calculate the maximum date according to the number of weeks and the initial date
+	// There are 604.800 seconds in a week
+	int addedTime = 604800 * numberOfWeeks;
+	time_t startDateEpoch = mktime(&startDate);
+	time_t limitDate = startDateEpoch + addedTime;
+
+	// We get the unique types of employees
+	vector<string> typeVector;
+	vector<string> uniqueTypeVector;
+	for (Employee EMPLOYEE : employeeVector)
+	{
+		typeVector.push_back(EMPLOYEE.role);
+	}
+
+	std::sort(typeVector.begin(), typeVector.end());
+	std::unique_copy(typeVector.begin(), typeVector.end(), std::back_inserter(uniqueTypeVector));
+
+	// For each type, we get the duration of its tasks and check if it surpases the limitDate
+	time_t totalDuration = 00000;
+	time_t startDateEpochCopy = startDateEpoch;
+	time_t finishTime = 00000;
+	for (string TYPE : uniqueTypeVector)
+	{
+		for (Task TASK : taskVector)
+		{
+			for (size_t i = 0; i < TASK.compatibilities.size(); i++)
+			{
+				if (TYPE.compare(TASK.compatibilities.at(i)) == 0)
+				{
+					totalDuration += TASK.durations.at(i) * 3600;
+				}
+			}
+		}
+
+		startDateEpochCopy += totalDuration;
+		finishTime = getFinishTime(totalDuration, startDateEpochCopy);
+
+		if (finishTime > limitDate)
+		{
+			return -1;
+		}
+
+	}
+
+}
+
 bool areStateVectorsEqual(vector<State> vector1, vector<State> vector2) {
 
 	bool allEqual = true;
@@ -626,7 +891,7 @@ bool areStateVectorsEqual(vector<State> vector1, vector<State> vector2) {
 	for (size_t i = 0; i < vector1.size(); i++)
 	{
 		// If any of their values dont coincide, they are not equal
-		if ( vector1.at(i).value.id != vector2.at(i).value.id )
+		if (vector1.at(i).value.id != vector2.at(i).value.id)
 		{
 			allEqual = false;
 		}
@@ -1372,8 +1637,8 @@ void pushAssignedValues(vector<Value> candidateValues, Variable VARIABLE, vector
 							//cout << "Pushing alternative state" << endl;
 							stateAssignments.push_back(currentStateAsignment);
 						}
-						
-						
+
+
 					}
 
 					// When we have finished creating the states, we return
@@ -1456,7 +1721,7 @@ void writeSolution(vector<vector<State>> stateAssignments) {
 				{
 					lastStateDate = lastStateDateTemp;
 				}
-				 
+
 			}
 
 		}
@@ -1577,7 +1842,7 @@ bool compareStateVectorByDateFullStack(vector<State> s1, vector<State> s2) {
 			counter2++;
 		}
 	}
-	
+
 	// If one vector had more assigned states than the other, the comparison cant be real and thus we return false
 	if (counter1 == counter2)
 	{
@@ -1586,7 +1851,7 @@ bool compareStateVectorByDateFullStack(vector<State> s1, vector<State> s2) {
 	else {
 		return false;
 	}
-	
+
 }
 
 vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKCandidates) {
@@ -1596,7 +1861,7 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 
 	// We first sort the array of dates
 	std::sort(std::execution::seq, valuesVector.begin(), valuesVector.end(), compareValuesByDate);
-	
+
 	// Counter for how many distinct elements have been pushed
 	int counter = 0;
 	bool duplicate = false;
@@ -1607,7 +1872,7 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 		// For each element we compare it against the elements of the solution vector
 		for (Value VALUE : solutionVector)
 		{
-			if (valuesVector.at(i).id == VALUE.id )
+			if (valuesVector.at(i).id == VALUE.id)
 			{
 				duplicate = true;
 			}
@@ -1629,7 +1894,7 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 		{
 			break;
 		}
-		
+
 	}
 
 	return solutionVector;
@@ -1862,13 +2127,22 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 				if (isDomain(VARIABLE, VALUE))
 				{
 					tempState.value = VALUE;
+
 					// If the current value is not mutex with the already asigned variables
 					if (isMutex(tempState, VECTOR) == false)
 					{
 						// We add it to the vector of candidates
 						candidateValues.push_back(VALUE);
+
 					}
+
 				}
+
+				//// If we have more than 10000 values we stop looking for more
+				//if (candidateValues.size() == 10000)
+				//{
+				//	break;
+				//}
 			}
 
 			//cout << "Vector size: " << candidateValues.size() << endl;
@@ -1889,7 +2163,7 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 
 			// We clear the contents of candidateValues for the next vector of states
 			candidateValues.clear();
-			
+
 			/*for (vector<State> VECTOR : solutionsCopy)
 			{
 				cout << "- Solution after Values -" << endl;
@@ -1927,7 +2201,7 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 				purgeSolutions(solutionsCopy, VARIABLE, numberOfKCandidates);
 				break;
 			}
-			
+
 		}
 
 		solutionsVector = solutionsCopy;
@@ -2048,34 +2322,11 @@ int main()
 	else {
 		std::cout << "Initial date of the project is " << std::put_time(&startDate, "%Y-%m-%dT%H:%M:%S") << endl;
 	}
-	// cout << "Please introduce the estimated duration of the project" << endl;
+	// cout << "Please introduce the estimated duration of the project in weeks" << endl;
 	cout << "Estimated duration of the project is " << numberOfWeeks << " weeks" << endl;
 
-	Task Task1("UI", std::vector<int>{6}, std::vector<std::string>{"Designer"}, std::vector<std::string>{"-"});
-	Task Task2("BackEnd", std::vector<int>{10, 12, 10}, std::vector<std::string>{"CTO", "CTO", "CPO"}, std::vector<std::string>{"-"});
-	Task Task3("Marketing", std::vector<int>{8, 4}, std::vector<std::string>{"Designer", "CPO"}, std::vector<std::string>{"UI", "BackEnd"});
-
-	Employee Employee1("Rodrigo", "CEO");
-	Employee Employee2("Arturo", "CTO");
-	Employee Employee3("Sergio", "CFO");
-
-	/* Writing CSV test */
-
-	// Make three vectors
-	std::vector<string> vec1{ "Rodrigo", "Arturo", "Sergio" };
-	std::vector<string> vec2{ "CEO", "CTO", "CPO" };
-	std::vector<string> vec3{ "9:00-17:00|9:00-15:00", "9:00-17:00|9:00-15:00", "9:00-17:00|9:00-15:00" };
-
-	// Wrap into a vector
-	std::vector<std::pair<std::string, std::vector<string>>> values = { {"Name", vec1}, {"Role", vec2}, {"Schedule", vec3} };
-
-	// Write the vector to CSV
-	writeCSV("CSVtrial.csv", values);
-
-	/* Reading CSV test */
-
 	// Read both CSVs
-	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("10employees.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("20employees.csv");
 	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("26tasks.csv");
 
 	// We print both CSVs
@@ -2100,7 +2351,17 @@ int main()
 	std::vector<Task> taskList = fillTasks(tasksData);
 	printTasks(taskList);
 
+	// We check if there are enough weeks to perform the project
+	/*if (isEnoughWeeks(employeeList, taskList) == -1)
+	{
+		cout << "***FAILURE***" << endl;
+		cout << "Not enough time to finish the project, increase the number of weeks" << endl;
+		return -1;
+	}*/
+
+	std::chrono::steady_clock::time_point beginGrounding = std::chrono::steady_clock::now();
 	grounding(employeeList, taskList);
+	std::chrono::steady_clock::time_point endGrounding = std::chrono::steady_clock::now();
 	printVariables();
 
 	// Number of values = weeks*days*hours*employees
@@ -2112,7 +2373,7 @@ int main()
 	cout << "Calculating mutex" << endl;
 	cout << "------------" << endl;
 	std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
-	int mutexResult = callMutex(1);
+	int mutexResult = callMutex(2);
 	std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
 
 	if (mutexResult == -1)
@@ -2140,6 +2401,7 @@ int main()
 	cout << "------------" << endl;
 	std::chrono::steady_clock::time_point beginDFS = std::chrono::steady_clock::now();
 	bool DFSResult = DFS(stateAssignments);
+	//bool DFSResult = true;
 	std::chrono::steady_clock::time_point endDFS = std::chrono::steady_clock::now();
 	solutions.push_back(stateAssignments);
 	cout << endl;
@@ -2156,7 +2418,6 @@ int main()
 		cout << "*////////////////////*" << endl;
 		cout << endl;
 		cout << "***DFS FAILURE***" << endl;
-		cout << "Not enough time to finish the project perhaps?" << endl;
 		return -1;
 		cout << endl;
 	}
@@ -2165,7 +2426,7 @@ int main()
 	//bool DFSResult = true;
 	//bool DFSResult = GreedySearch(stateAssignments);
 	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
-	vector<vector<State>> solutionsBS = BeamSearch(stateAssignments, 100, 2, 1);
+	vector<vector<State>> solutionsBS = BeamSearch(stateAssignments, 100, 1, 3);
 	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
 
 	// We add the BS solutions to the vector
@@ -2195,6 +2456,7 @@ int main()
 	// We write the solution into a CSV file
 	writeSolution(solutions);
 
+	std::cout << "Time elapsed Grounding = " << (std::chrono::duration_cast<std::chrono::microseconds>(endGrounding - beginGrounding).count()) / 1000000.0 << std::endl;
 	std::cout << "Time elapsed Mutex = " << (std::chrono::duration_cast<std::chrono::microseconds>(endMutex - beginMutex).count()) / 1000000.0 << std::endl;
 	std::cout << "Time elapsed DFS = " << (std::chrono::duration_cast<std::chrono::microseconds>(endDFS - beginDFS).count()) / 1000000.0 << std::endl;
 	std::cout << "Time elapsed BS = " << (std::chrono::duration_cast<std::chrono::microseconds>(endBS - beginBS).count()) / 1000000.0 << std::endl;

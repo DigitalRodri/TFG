@@ -1,0 +1,6 @@
+Name,Duration,Compatibility,Dependencies
+Concept,2,Programmer,-
+Environmental Design,2,Programmer,Concept
+Character Design,2,Programmer,Environmental Design
+Level Design,2,Programmer,Character Design
+Music Aligment,2,Programmer,Level Design

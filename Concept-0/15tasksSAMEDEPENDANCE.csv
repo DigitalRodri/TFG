@@ -1,0 +1,16 @@
+Name,Duration,Compatibility,Dependencies
+Concept,2,Programmer,-
+Environmental Design,2,Programmer,Concept
+Character Design,2,Programmer,Environmental Design
+Level Design,2,Programmer,Character Design
+Music Aligment,2,Programmer,Level Design
+Music Late Motifs,2,Programmer,Music Aligment
+Combat Programming,2,Programmer,Music Late Motifs
+World Programming,2,Programmer,Combat Programming
+Inventory Programming,2,Programmer,World Programming
+Music Testing,2,Programmer,Inventory Programming
+Programming Testing,2,Programmer,Music Testing
+Design Testing,2,Programmer,Programming Testing
+Legal Preparation,2,Programmer,Design Testing
+Copyright Research,2,Programmer,Legal Preparation
+Patent Infrigement,2,Programmer,Copyright Research
