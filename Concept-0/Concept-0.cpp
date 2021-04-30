@@ -1159,18 +1159,22 @@ vector< std::pair< pair<std::string, std::string>, vector<pair<int, int>> > > po
 						if (isDomain(VARIABLE2, VALUE2))
 						{
 
-							//cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
+							/*if (VARIABLE1.task.name.compare("Environmental Design") == 0)
+							{
+								cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
+							}*/
 
+							time_t task1FinishTime = VARIABLE1.getTaskFinishTime(VALUE1.employee.role, VALUE1.date);
 							time_t task2FinishTime = VARIABLE2.getTaskFinishTime(VALUE2.employee.role, VALUE2.date);
 
 							// We add all combinations of the same employee at the duration of the task
-							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date <= VALUE1.date) && (VALUE1.date < task2FinishTime))
+							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date < task1FinishTime) && (VALUE1.date < task2FinishTime))
 							{
-								if (VARIABLE1.task.name.compare("Testing") == 0)
+								/*if (VARIABLE1.task.name.compare("Environmental Design") == 0)
 								{
-									//cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
-									//cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
-								}
+									cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
+									cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
+								}*/
 
 								temporalMutexValuePair = std::make_pair(VALUE1.id, VALUE2.id);
 								temporalMutexValueVector.push_back(temporalMutexValuePair);
@@ -1247,14 +1251,19 @@ void populateMutex() {
 						if (isDomain(VARIABLE2, VALUE2))
 						{
 
-							//cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
+							
+							/*if (VARIABLE1.task.name.compare("Environmental Design") == 0)
+							{
+								cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
+							}*/
 
+							time_t task1FinishTime = VARIABLE1.getTaskFinishTime(VALUE1.employee.role, VALUE1.date);
 							time_t task2FinishTime = VARIABLE2.getTaskFinishTime(VALUE2.employee.role, VALUE2.date);
 
 							// We add all combinations of the same employee at the duration of the task
-							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date <= VALUE1.date) && (VALUE1.date < task2FinishTime))
+							if ((VALUE1.employee.name.compare(VALUE2.employee.name) == 0) && (VALUE2.date < task1FinishTime) && (VALUE1.date < task2FinishTime))
 							{
-								/*if (VARIABLE1.task.name.compare("Verification") == 0)
+								/*if (VARIABLE1.task.name.compare("Environmental Design") == 0)
 								{
 									cout << "1. Value " << VALUE1.id << " mutex with " << VALUE2.id << endl;
 									cout << "Date " << task2FinishTime << " is > than " << VALUE1.date << endl;
@@ -1520,7 +1529,7 @@ bool isMutex(State CURRENTSTATE, vector<State> stateAssignments) {
 			{
 				//cout << "Mutex value " << vectorMutex.at(i).first << " and " << vectorMutex.at(i).second << endl;
 				if (vectorMutex.at(i).first == value1.id && vectorMutex.at(i).second == value2.id) {
-					//cout << "Value " << value1.id << " of " << CURRENTSTATE.variable.task.name << " is not compatible with " << value2.id << " of " << STATEASSIGNMENT.variable.task.name << endl;;
+					//cout << "Value " << value1.id << " of " << CURRENTSTATE.variable.task.name << " is not compatible with " << value2.id << " of " << STATEASSIGNMENT.variable.task.name << endl;
 					return true;
 				}
 			}
@@ -1844,6 +1853,7 @@ bool compareStateVectorByDateFullStack(vector<State> s1, vector<State> s2) {
 	}
 
 	// If one vector had more assigned states than the other, the comparison cant be real and thus we return false
+	//return (s1Date < s2Date);
 	if (counter1 == counter2)
 	{
 		return (s1Date < s2Date);
@@ -1903,7 +1913,7 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 void purgeSolutions(vector<vector<State>>& solutionsVector, Variable VARIABLE, int numberOfKCandidates) {
 
 	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variablee
-	std::sort(std::execution::seq, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDate);
+	std::sort(std::execution::par_unseq, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDate);
 
 	// We get the K values from the vector
 	vector<vector<State>> auxVector(solutionsVector.begin(), solutionsVector.begin() + numberOfKCandidates);
@@ -2161,6 +2171,12 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 			// We push the K best values into new assignments
 			pushAssignedValues(candidateValues, VARIABLE, VECTOR, solutionsCopy);
 
+			/*for (vector<State> solution : solutionsCopy)
+			{
+				cout << "-- Solutions afterPush --" << endl;
+				printStateAssignments(solution);
+			}*/
+
 			// We clear the contents of candidateValues for the next vector of states
 			candidateValues.clear();
 
@@ -2170,8 +2186,8 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 				printStateAssignments(VECTOR);
 			}*/
 
-			/*cout << "-- Vector of states finished --" << endl;
-			cout << endl;*/
+			//cout << "---- Vector of states finished ----" << endl;
+			//cout << endl;
 		}
 
 		cout << "-- Variable finished " << VARIABLE.task.name << " --" << endl;
@@ -2203,6 +2219,11 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 			}
 
 		}
+		/*for (vector<State> solution : solutionsCopy)
+		{
+			cout << "-- Solutions postPurge --" << endl;
+			printStateAssignments(solution);
+		}*/
 
 		solutionsVector = solutionsCopy;
 
@@ -2212,7 +2233,7 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 	cout << "End of the Beam search" << endl;
 	cout << endl;
 
-	// From the solution, we get the best 3 results given any K
+	// From the solution, we get the best wantedSolutions results given any K
 	Variable lastVariable = solutionsVector.back().back().variable;
 	purgeSolutions(solutionsVector, lastVariable, wantedSolutions);
 
@@ -2422,11 +2443,11 @@ int main()
 		cout << endl;
 	}
 
-	// Get the first solution | FAST
-	//bool DFSResult = true;
-	//bool DFSResult = GreedySearch(stateAssignments);
+	/* We recreate a vector of States */
+	stateAssignments = createStateVector();
+
 	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
-	vector<vector<State>> solutionsBS = BeamSearch(stateAssignments, 100, 1, 3);
+	vector<vector<State>> solutionsBS = BeamSearch(stateAssignments, 20, 2, 3);
 	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
 
 	// We add the BS solutions to the vector

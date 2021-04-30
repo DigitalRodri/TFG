@@ -1,10 +1,10 @@
 ﻿  Concept-0.cpp
 C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(635,7): warning C4101: 'printBuffer': unreferenced local variable
 C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(875,30): warning C4244: 'argument': conversion from 'time_t' to 'int', possible loss of data
-C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(1313,70): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(1335,62): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(1322,70): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(1344,62): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   Generating code
-  1 of 2497 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  4 of 2496 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
