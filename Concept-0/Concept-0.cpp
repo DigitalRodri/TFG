@@ -1545,6 +1545,29 @@ bool isMutex(State CURRENTSTATE, vector<State> stateAssignments) {
 
 }
 
+bool allDependenciesAssigned(vector<State> stateAssignments, State CURRENTSTATE) {
+
+	// For each dependence of the current state
+	for (string DEPENDENCE : CURRENTSTATE.variable.task.dependencies)
+	{
+		// For each assigned state
+		for (State STATE : stateAssignments)
+		{
+			// We check if it is a dependence and has not been assigned 
+			if ( (STATE.variable.task.name.compare(DEPENDENCE) == 0) && (STATE.value.id == -1) )
+			{
+				// If it has not been assigned, we return false
+				cout << "Not all dependencies of " << CURRENTSTATE.variable.task.name << " are assigned" << endl;
+				return false;
+			}
+		}
+	}
+
+	// If all dependencies are assigned, we return true
+	cout << "All dependencies of " << CURRENTSTATE.variable.task.name << " are assigned" << endl;
+	return true;
+}
+
 bool allStatesAssigned(vector<State> stateAssignments) {
 
 	//cout << "Checking if all states are assigned" << endl;
@@ -1595,14 +1618,32 @@ void pushAssignedState(State CURRENTSTATE, vector<State>& stateAssignments) {
 	// We iterate through the state assignments
 	for (size_t i = 0; i < stateAssignments.size(); i++)
 	{
-		// If its variable coincides with the input one, we assign the value to the variable
-		if (stateAssignments.at(i).variable.id == CURRENTSTATE.variable.id)
+		// If its variable coincides with the input one and it is not a repeated one, we assign the value to the variable
+		if ( (stateAssignments.at(i).variable.id == CURRENTSTATE.variable.id) && (stateAssignments.at(i).value.id != -2) )
 		{
 			//	cout << "Pushing value " << CURRENTSTATE.value.id << " for variable " << stateAssignments.at(i).variable.task.name << endl;
 			stateAssignments.at(i).value = CURRENTSTATE.value;
 
 		}
 	}
+}
+
+void pushDependantState(State CURRENTSTATE, vector<State>& stateAssignments) {
+
+	// We iterate through the state assignments
+	for (size_t i = 0; i < stateAssignments.size(); i++)
+	{
+		// If its variable coincides with the input one, we assign the value -2 to mark that it is dependant
+		if (stateAssignments.at(i).variable.id == CURRENTSTATE.variable.id)
+		{
+			//	cout << "Pushing value " << CURRENTSTATE.value.id << " for variable " << stateAssignments.at(i).variable.task.name << endl;
+			stateAssignments.at(i).value.id = -2;
+
+		}
+	}
+
+	// We push the state again to the back with id -1
+	stateAssignments.push_back(CURRENTSTATE);
 }
 
 void pushAssignedValues(vector<Value> candidateValues, Variable VARIABLE, vector<State> currentStateAsignment, vector<vector<State>>& stateAssignments) {
@@ -1710,27 +1751,31 @@ void writeSolution(vector<vector<State>> stateAssignments) {
 		// Collect data from solution and place it into the vectors
 		for (State state : solution)
 		{
-			employeeData.push_back(state.value.employee.name);
-			taskData.push_back(state.variable.task.name);
-			durationString = to_string(state.variable.getTaskDuration(state.value.employee.role));
-			durationData.push_back(durationString);
-
-			stringstream timeString;
-			struct std::tm hora;
-			localtime_s(&hora, &state.value.date);
-			timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
-			dateData.push_back(timeString.str());
-
-			// If there was no SCRUM implementation, we make the calculation of the finish Date
-			if (scrumTime == -1)
+			// If it is not a repeated state
+			if (state.value.id != -2)
 			{
-				// We replace it only if it is after the already calculated one
-				time_t lastStateDateTemp = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
-				if (lastStateDateTemp > lastStateDate)
-				{
-					lastStateDate = lastStateDateTemp;
-				}
+				employeeData.push_back(state.value.employee.name);
+				taskData.push_back(state.variable.task.name);
+				durationString = to_string(state.variable.getTaskDuration(state.value.employee.role));
+				durationData.push_back(durationString);
 
+				stringstream timeString;
+				struct std::tm hora;
+				localtime_s(&hora, &state.value.date);
+				timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
+				dateData.push_back(timeString.str());
+
+				// If there was no SCRUM implementation, we make the calculation of the finish Date
+				if (scrumTime == -1)
+				{
+					// We replace it only if it is after the already calculated one
+					time_t lastStateDateTemp = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+					if (lastStateDateTemp > lastStateDate)
+					{
+						lastStateDate = lastStateDateTemp;
+					}
+
+				}
 			}
 
 		}
@@ -1957,19 +2002,27 @@ bool DFS(vector<State>& stateAssignments) {
 				currentState.value = VALUE;
 				if (isMutex(currentState, stateAssignments) == false)
 				{
-					// We push the value into the assignedVariables list and execute the recursive call
-					pushAssignedState(currentState, stateAssignments);
-					bool result = DFS(stateAssignments);
-
-					// If the call result is failure, we delete the assignment
-					if (result == false)
+					// We check if all dependencies have been met
+					if (allDependenciesAssigned(stateAssignments, currentState) == true)
 					{
-						deleteAssignedVariable(currentState, stateAssignments);
-					}
-					else {
-						return true;
-					}
+						// We push the value into the assignedVariables list and execute the recursive call
+						pushAssignedState(currentState, stateAssignments);
+						bool result = DFS(stateAssignments);
 
+						// If the call result is failure, we delete the assignment
+						if (result == false)
+						{
+							deleteAssignedVariable(currentState, stateAssignments);
+						}
+						else {
+							return true;
+						}
+					}
+					// If not all dependencies have been assigned, we push the current state to the back and continue to the next variable
+					else {
+						pushDependantState(currentState, stateAssignments);
+						bool result = DFS(stateAssignments);
+					}
 				}
 			}
 		}
