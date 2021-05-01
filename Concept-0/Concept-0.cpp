@@ -28,7 +28,6 @@ static int hoursPerDay = finishHour - startHour;
 static std::string lunchTime;
 static int scrumTime = -1;
 static std::tm startDate;
-static std::tm finishDate;
 
 
 class Task {
@@ -441,7 +440,8 @@ bool operator< (const Value& obj1, const Value& obj2) {
 static std::set<Variable> VARIABLES;
 static std::set<Value> DOMAINS;
 static std::map< pair<std::string, std::string>, vector<pair<int, int>> > MUTEX;
-vector<State> SOLUTION;
+vector<vector<State>> BSSOLUTIONS;
+vector<State> DFSSOLUTION;
 
 void writeCSV(std::string filename, std::vector<std::pair<std::string, std::vector<string>>> dataset) {
 	// Make a CSV file with one or more columns of integer values
@@ -1774,9 +1774,9 @@ void deleteAssignedVariable(State CURRENTSTATE, vector<State>& stateAssignments)
 	//}
 }
 
-void writeSolution(vector<vector<State>> stateAssignments) {
+void writeSolutions(vector<vector<State>> stateAssignments) {
 
-	cout << "Exporting solution" << endl;
+	cout << "Exporting BS solution(s)" << endl;
 	cout << "------------" << endl;
 
 	// Vectors for the column data
@@ -1809,17 +1809,14 @@ void writeSolution(vector<vector<State>> stateAssignments) {
 			timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
 			dateData.push_back(timeString.str());
 
-			// If there was no SCRUM implementation, we make the calculation of the finish Date
-			if (scrumTime == -1)
+			// We make the calculation of the finish Date and replace it only if it is after the already calculated one
+			time_t lastStateDateTemp = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+			if (lastStateDateTemp > lastStateDate)
 			{
-				// We replace it only if it is after the already calculated one
-				time_t lastStateDateTemp = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
-				if (lastStateDateTemp > lastStateDate)
-				{
-					lastStateDate = lastStateDateTemp;
-				}
-
+				lastStateDate = lastStateDateTemp;
 			}
+
+
 
 
 		}
@@ -1828,17 +1825,11 @@ void writeSolution(vector<vector<State>> stateAssignments) {
 		employeeData.push_back("-");
 		taskData.push_back("Finish");
 		durationData.push_back("-");
-		stringstream timeString;
 
-		// If there is a SCRUM implementation, we take the value from the static variable
-		if (scrumTime != -1) {
-			timeString << std::put_time(&finishDate, "%Y-%m-%dT%H:%M:%S");
-		}
-		else {
-			struct std::tm hora;
-			localtime_s(&hora, &lastStateDate);
-			timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
-		}
+		stringstream timeString;
+		struct std::tm hora;
+		localtime_s(&hora, &lastStateDate);
+		timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
 		dateData.push_back(timeString.str());
 
 
@@ -1857,34 +1848,109 @@ void writeSolution(vector<vector<State>> stateAssignments) {
 	}
 
 	// Call to the writing CSV function with the data
-	writeCSV("Solution.csv", solutions);
+	writeCSV("BSSolution.csv", solutions);
 
 }
 
-void checkBestSolution(vector<State>& stateAssignments) {
+void writeSolution(vector<State> stateAssignments) {
 
-	// Auxiliary variables
-	time_t oldCounter = 00000;
-	time_t newCounter = 00000;
+	cout << "Exporting DFS solution(s)" << endl;
+	cout << "------------" << endl;
 
-	// We get the total time of the current solution and the new one
-	for (State STATE : SOLUTION)
+	// Vectors for the column data
+	vector<string> employeeData;
+	vector<string> taskData;
+	vector<string> dateData;
+	vector<string> durationData;
+	string durationString;
+	time_t lastStateDate = 00000;
+
+	// Final vector for inserting solution into the writing CSV function
+	std::vector<std::pair<std::string, std::vector<string>>> solutions;
+
+
+	// Collect data from solution and place it into the vectors
+	for (State state : stateAssignments)
 	{
-		oldCounter = oldCounter + STATE.value.date;
-	}
-	for (State STATE : stateAssignments)
-	{
-		newCounter = newCounter + STATE.value.date;
+
+		employeeData.push_back(state.value.employee.name);
+		taskData.push_back(state.variable.task.name);
+		durationString = to_string(state.variable.getTaskDuration(state.value.employee.role));
+		durationData.push_back(durationString);
+
+		stringstream timeString;
+		struct std::tm hora;
+		localtime_s(&hora, &state.value.date);
+		timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
+		dateData.push_back(timeString.str());
+
+		// We make the calculation of the finish Date and replace it only if it is after the already calculated one
+		time_t lastStateDateTemp = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+		if (lastStateDateTemp > lastStateDate)
+		{
+			lastStateDate = lastStateDateTemp;
+		}
+
+
+
+
 	}
 
-	// If the new one has a lower time, it becomes the new solution
-	if (newCounter < oldCounter)
-	{
-		cout << "Better solution found" << endl;
-		SOLUTION = stateAssignments;
-	}
+	// We add a final state for the end of the project
+	employeeData.push_back("-");
+	taskData.push_back("Finish");
+	durationData.push_back("-");
+
+	stringstream timeString;
+	struct std::tm hora;
+	localtime_s(&hora, &lastStateDate);
+	timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
+	dateData.push_back(timeString.str());
+
+
+	// Insert column name and data into solution vector
+	solutions.push_back(std::make_pair("Employee", employeeData));
+	solutions.push_back(std::make_pair("Task", taskData));
+	solutions.push_back(std::make_pair("Date", dateData));
+	solutions.push_back(std::make_pair("Duration", durationData));
+
+	employeeData.clear();
+	taskData.clear();
+	dateData.clear();
+	durationData.clear();
+	lastStateDate = 00000;
+
+
+
+	// Call to the writing CSV function with the data
+	writeCSV("DFSSolution.csv", solutions);
 
 }
+
+//void checkBestSolution(vector<State>& stateAssignments) {
+//
+//	// Auxiliary variables
+//	time_t oldCounter = 00000;
+//	time_t newCounter = 00000;
+//
+//	// We get the total time of the current solution and the new one
+//	for (State STATE : SOLUTION)
+//	{
+//		oldCounter = oldCounter + STATE.value.date;
+//	}
+//	for (State STATE : stateAssignments)
+//	{
+//		newCounter = newCounter + STATE.value.date;
+//	}
+//
+//	// If the new one has a lower time, it becomes the new solution
+//	if (newCounter < oldCounter)
+//	{
+//		cout << "Better solution found" << endl;
+//		SOLUTION = stateAssignments;
+//	}
+//
+//}
 
 bool compareValuesByDate(Value v1, Value v2) {
 	return (v1.date < v2.date);
@@ -2071,66 +2137,66 @@ bool DFS(vector<State>& stateAssignments) {
 	}
 }
 
-bool DFSComplete(vector<State>& stateAssignments) {
-
-	//cout << "----" << endl;
-
-	//printStateAssignments(stateAssignments);
-
-	// Base case: all variables have been assigned
-	if (allStatesAssigned(stateAssignments) == true)
-	{
-		// If its the first solution, we assign it
-		if (SOLUTION.size() == 0)
-		{
-			cout << "First solution found" << endl;
-			SOLUTION = stateAssignments;
-		}
-		// If its not, we compare it against the current one to see if its better
-		else {
-			checkBestSolution(stateAssignments);
-		}
-
-		return false;
-
-	}
-	else {
-
-		// We get an unnassigned variable
-		State currentState = getUnnassignedState(stateAssignments);
-
-		// We iterate through all of the values of its domain
-		for (Value VALUE : DOMAINS)
-		{
-			if (isDomain(currentState.variable, VALUE))
-			{
-				// If the current value is not mutex with the already assigned variables
-				currentState.value = VALUE;
-				if (isMutex(currentState, stateAssignments) == false)
-				{
-					// We push the value into the assignedVariables list and execute the recursive call
-					pushAssignedState(currentState, stateAssignments);
-					bool result = DFSComplete(stateAssignments);
-
-					// If the call result is failure, we delete the assignment
-					if (result == false)
-					{
-						deleteAssignedVariable(currentState, stateAssignments);
-					}
-
-				}
-			}
-			//cout << "End of value" << endl;
-		}
-
-		// All values have been tested, we backtrack
-		//cout << "End of the variable " << currentState.variable.task.name << " values" << endl;
-		//cout << endl;
-		deleteAssignedVariable(currentState, stateAssignments);
-		return false;
-
-	}
-}
+//bool DFSComplete(vector<State>& stateAssignments) {
+//
+//	//cout << "----" << endl;
+//
+//	//printStateAssignments(stateAssignments);
+//
+//	// Base case: all variables have been assigned
+//	if (allStatesAssigned(stateAssignments) == true)
+//	{
+//		// If its the first solution, we assign it
+//		if (SOLUTION.size() == 0)
+//		{
+//			cout << "First solution found" << endl;
+//			SOLUTION = stateAssignments;
+//		}
+//		// If its not, we compare it against the current one to see if its better
+//		else {
+//			checkBestSolution(stateAssignments);
+//		}
+//
+//		return false;
+//
+//	}
+//	else {
+//
+//		// We get an unnassigned variable
+//		State currentState = getUnnassignedState(stateAssignments);
+//
+//		// We iterate through all of the values of its domain
+//		for (Value VALUE : DOMAINS)
+//		{
+//			if (isDomain(currentState.variable, VALUE))
+//			{
+//				// If the current value is not mutex with the already assigned variables
+//				currentState.value = VALUE;
+//				if (isMutex(currentState, stateAssignments) == false)
+//				{
+//					// We push the value into the assignedVariables list and execute the recursive call
+//					pushAssignedState(currentState, stateAssignments);
+//					bool result = DFSComplete(stateAssignments);
+//
+//					// If the call result is failure, we delete the assignment
+//					if (result == false)
+//					{
+//						deleteAssignedVariable(currentState, stateAssignments);
+//					}
+//
+//				}
+//			}
+//			//cout << "End of value" << endl;
+//		}
+//
+//		// All values have been tested, we backtrack
+//		//cout << "End of the variable " << currentState.variable.task.name << " values" << endl;
+//		//cout << endl;
+//		deleteAssignedVariable(currentState, stateAssignments);
+//		return false;
+//
+//	}
+//}
 
 bool GreedySearch(vector<State>& stateAssignments) {
 
@@ -2180,7 +2246,6 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 	// We compute the heuristic calculation, it being the state with the lowest time in the latest instantitead task
 	// We do this with various instantiations at a time
 
-	cout << "Beginning Beam Search" << endl;
 	switch (beamMode)
 	{
 	case 1:
@@ -2353,6 +2418,8 @@ vector<State> insertSCRUM(vector<State>& stateAssignments) {
 	cout << "Inserting SCRUM dailies" << endl;
 	cout << "------------" << endl;
 
+	static std::tm finishDate;
+
 	// We get the finishing date
 	for (State state : stateAssignments)
 	{
@@ -2381,6 +2448,7 @@ vector<State> insertSCRUM(vector<State>& stateAssignments) {
 	localtime_s(&time, &localStartDate);
 	time.tm_hour = scrumTime;
 	localStartDate = mktime(&time);
+
 	// We create as many states as days from the beginning to the end of the project
 	// In each of these states, we set the value as SCRUM at the designed time
 	while (localFinishDate > localStartDate)
@@ -2507,15 +2575,16 @@ int main()
 	cout << "Beginning Search algorithm(s)" << endl;
 	cout << "------------" << endl;
 
-	vector<vector<State>> solutions;
+
 
 	cout << "Beginning DFS" << endl;
 	cout << "------------" << endl;
+
 	std::chrono::steady_clock::time_point beginDFS = std::chrono::steady_clock::now();
 	bool DFSResult = DFS(stateAssignments);
 	//bool DFSResult = true;
 	std::chrono::steady_clock::time_point endDFS = std::chrono::steady_clock::now();
-	solutions.push_back(stateAssignments);
+	DFSSOLUTION = stateAssignments;
 	cout << endl;
 
 	// If DFS is not succesful, BS wont be
@@ -2537,19 +2606,16 @@ int main()
 	/* We recreate a vector of States */
 	stateAssignments = createStateVector();
 
-	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
-	vector<vector<State>> solutionsBS = BeamSearch(stateAssignments, 20, 2, 3);
-	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
+	cout << "Beginning Beam Search" << endl;
+	cout << "------------" << endl;
 
-	// We add the BS solutions to the vector
-	for (auto SOLUTION : solutionsBS)
-	{
-		solutions.push_back(SOLUTION);
-	}
+	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
+	BSSOLUTIONS = BeamSearch(stateAssignments, 20, 2, 3);
+	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
 
 	cout << "Printing solutions" << endl;
 	cout << "------------" << endl;
-	for (vector<State> SOLUTION : solutions)
+	for (vector<State> SOLUTION : BSSOLUTIONS)
 	{
 		printStateAssignments(SOLUTION);
 		cout << "--" << endl;
@@ -2557,16 +2623,24 @@ int main()
 	// Get best solution | TAKES HOURS
 	//DFSComplete(stateAssignments);
 
-	SOLUTION = stateAssignments;
-
 	// We insert the SCRUM dailies into the solution if they're enabled
 	if (scrumTime != -1)
 	{
-		stateAssignments = insertSCRUM(stateAssignments);
+		DFSSOLUTION = insertSCRUM(DFSSOLUTION);
+		vector<vector<State>> BSCopy;
+
+
+		for (size_t i = 0; i < BSSOLUTIONS.size(); i++)
+		{
+			BSCopy.push_back(insertSCRUM(BSSOLUTIONS.at(i)));
+		}
+
+		BSSOLUTIONS = BSCopy;
 	}
 
-	// We write the solution into a CSV file
-	writeSolution(solutions);
+	// We write the solutions into a CSV file
+	writeSolution(DFSSOLUTION);
+	writeSolutions(BSSOLUTIONS);
 
 	std::cout << "Time elapsed Grounding = " << (std::chrono::duration_cast<std::chrono::microseconds>(endGrounding - beginGrounding).count()) / 1000000.0 << std::endl;
 	std::cout << "Time elapsed Mutex = " << (std::chrono::duration_cast<std::chrono::microseconds>(endMutex - beginMutex).count()) / 1000000.0 << std::endl;

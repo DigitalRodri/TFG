@@ -4,8 +4,8 @@ C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Conc
 C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(1368,70): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(1390,62): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   Generating code
-  251 of 2531 functions ( 9.9%) were compiled, the rest were copied from previous compilation.
+  232 of 2543 functions ( 9.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    147 functions had inline decision re-evaluated but remain unchanged
+    73 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Concept-0.vcxproj -> C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\x64\Release\Concept-0.exe
