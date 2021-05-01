@@ -21,8 +21,8 @@ using namespace std;
 
 // Static variables not dependant on classes
 static int labourDays = 5;
-static int startHour = 9;
-static int finishHour = 17;
+static int startHour = 10;
+static int finishHour = 16;
 static int numberOfWeeks = 2;
 static int hoursPerDay = finishHour - startHour;
 static std::string lunchTime;
@@ -1127,12 +1127,14 @@ void grounding(std::vector<Employee> employeeList, std::vector<Task> taskList) {
 				/*cout << "------------" << endl;
 				cout << "Day ended" << endl;
 				cout << "------------" << endl;*/
-				temporalDate += 57600;
+				// We advance until the next day (3600*hoursPerDay-labourHours
+				temporalDate += 3600*(24-hoursPerDay);
 			}
 			/*cout << "------------" << endl;
 			cout << "Week ended" << endl;
 			cout << "------------" << endl;*/
-			temporalDate += 172800;
+			// We advance until the next labour day (24*3600*7-labourDays)
+			temporalDate += 24*3600*(7-labourDays);
 
 		}
 		/*cout << "------------" << endl;
@@ -2484,7 +2486,7 @@ int main()
 	startDate = {};
 	std::locale mylocale("");
 	//std::istringstream ss("2021-02-22T09:00:00Z");
-	std::istringstream ss("2021-02-22T09:00:00");
+	std::istringstream ss("2021-02-22T10:00:00");
 	ss.imbue(std::locale(mylocale));
 	ss >> std::get_time(&startDate, "%Y-%m-%dT%H:%M:%S");
 

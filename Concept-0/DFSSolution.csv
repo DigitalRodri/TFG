@@ -1,27 +1,27 @@
 Employee,Task,Date,Duration
-Rodrigo,Concept,2021-02-22T09:00:00,8
-Arturo,Environmental Design,2021-02-23T09:00:00,10
-Roberto,Character Design,2021-02-23T09:00:00,9
-Roberto,Level Design,2021-02-24T10:00:00,15
-Roberto,Music Aligment,2021-02-26T09:00:00,18
-Roberto,Music Late Motifs,2021-03-01T11:00:00,14
-Arturo,Combat Programming,2021-03-03T09:00:00,15
-Arturo,World Programming,2021-02-24T11:00:00,10
-Arturo,Inventory Programming,2021-02-25T13:00:00,10
-Arturo,Music Testing,2021-03-04T16:00:00,7
-Arturo,Programming Testing,2021-02-26T15:00:00,10
-Arturo,Design Testing,2021-03-05T15:00:00,12
-Julia,Legal Preparation,2021-02-23T09:00:00,15
-Julia,Copyright Research,2021-02-24T16:00:00,7
-Julia,Patent Infrigement,2021-02-25T15:00:00,8
-Julia,IP Registration,2021-02-26T15:00:00,12
-Lucía,Competition,2021-02-23T09:00:00,6
-Lucía,Advertisements,2021-02-23T15:00:00,15
-Lucía,Influencer Contracts,2021-02-25T14:00:00,20
-Alicia,SS Contracts,2021-02-23T09:00:00,10
-Alicia,Expansion Investigation,2021-02-24T11:00:00,8
-Isabel,Monthly Expenditure,2021-02-23T09:00:00,7
-Isabel,Investments Payoff,2021-02-23T16:00:00,21
-Isabel,Future Viability,2021-02-26T13:00:00,10
-Alicia,IRPF Management,2021-02-25T11:00:00,10
+Rodrigo,Concept,2021-02-22T10:00:00,8
+Arturo,Environmental Design,2021-02-23T12:00:00,10
+Roberto,Character Design,2021-02-23T12:00:00,9
+Roberto,Level Design,2021-02-24T15:00:00,15
+Roberto,Music Aligment,2021-03-01T12:00:00,18
+Andrea,Music Late Motifs,2021-02-23T12:00:00,14
+Arturo,Combat Programming,2021-03-01T12:00:00,15
+Arturo,World Programming,2021-02-25T10:00:00,10
+Arturo,Inventory Programming,2021-03-03T15:00:00,10
+Arturo,Music Testing,2021-03-05T13:00:00,7
+Sergio,Programming Testing,2021-03-05T13:00:00,10
+Sergio,Design Testing,2021-03-01T12:00:00,12
+Julia,Legal Preparation,2021-02-23T12:00:00,15
+Julia,Copyright Research,2021-02-25T15:00:00,7
+Julia,Patent Infrigement,2021-03-01T10:00:00,8
+Julia,IP Registration,2021-03-02T12:00:00,12
+Lucía,Competition,2021-02-23T12:00:00,6
+Lucía,Advertisements,2021-02-24T12:00:00,15
+Lucía,Influencer Contracts,2021-02-26T15:00:00,20
+Alicia,SS Contracts,2021-02-23T12:00:00,10
+Alicia,Expansion Investigation,2021-02-25T10:00:00,8
+Isabel,Monthly Expenditure,2021-02-23T12:00:00,7
+Isabel,Investments Payoff,2021-02-24T13:00:00,21
+Isabel,Future Viability,2021-03-02T10:00:00,10
+Alicia,IRPF Management,2021-02-26T12:00:00,10
 -,Finish,2021-03-09T11:00:00,-
