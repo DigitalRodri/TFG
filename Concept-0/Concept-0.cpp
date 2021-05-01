@@ -618,6 +618,52 @@ void printDomains() {
 	cout << endl;
 }
 
+void moveDependenciesToEnd(vector<Task>& taskVector) {
+
+	vector<string> seenTasks;
+	bool seenDependence = false;
+
+	// For each task
+	for (size_t i = 0; i < taskVector.size(); i++)
+	{
+
+		// For each dependence of the task
+		for (string DEPENDENCE : taskVector.at(i).dependencies)
+		{
+			// If it is has a dependence
+			if (DEPENDENCE.compare("-") != 0)
+			{
+				// We check if it has already been seen
+				for (string TASK : seenTasks)
+				{
+					// If the dependence has been seen, we mark the boolean as true
+					if (DEPENDENCE.compare(TASK) == 0)
+					{
+						seenDependence = true;
+					}
+				}
+
+				// If the dependence was not seen, we move the current Task to the end of the vector and continue to the next Task
+				if (seenDependence == false)
+				{
+					cout << "Task " << taskVector.at(i).name << " moved to the end " << i << endl;
+					auto it = taskVector.begin() + i;
+					std::rotate(it, it + 1, taskVector.end());
+
+				}
+
+				// If it has been seen, we reset the boolean and continue
+				seenDependence = false;
+			}
+
+		}
+
+		// We add the task to the list of seen tasks
+		seenTasks.push_back(taskVector.at(i).name);
+	}
+
+}
+
 time_t getFinishTime(int duration, time_t startTime) {
 
 	// Auxiliary variables
@@ -1251,7 +1297,7 @@ void populateMutex() {
 						if (isDomain(VARIABLE2, VALUE2))
 						{
 
-							
+
 							/*if (VARIABLE1.task.name.compare("Environmental Design") == 0)
 							{
 								cout << "Comparing " << VALUE1.id << " to " << VALUE2.id << endl;
@@ -1554,7 +1600,7 @@ bool allDependenciesAssigned(vector<State> stateAssignments, State CURRENTSTATE)
 		for (State STATE : stateAssignments)
 		{
 			// We check if it is a dependence and has not been assigned 
-			if ( (STATE.variable.task.name.compare(DEPENDENCE) == 0) && (STATE.value.id == -1) )
+			if ((STATE.variable.task.name.compare(DEPENDENCE) == 0) && (STATE.value.id == -1))
 			{
 				// If it has not been assigned, we return false
 				cout << "Not all dependencies of " << CURRENTSTATE.variable.task.name << " are assigned" << endl;
@@ -1618,8 +1664,8 @@ void pushAssignedState(State CURRENTSTATE, vector<State>& stateAssignments) {
 	// We iterate through the state assignments
 	for (size_t i = 0; i < stateAssignments.size(); i++)
 	{
-		// If its variable coincides with the input one and it is not a repeated one, we assign the value to the variable
-		if ( (stateAssignments.at(i).variable.id == CURRENTSTATE.variable.id) && (stateAssignments.at(i).value.id != -2) )
+		// If its variable coincides with the input one, we assign the value to the variable
+		if (stateAssignments.at(i).variable.id == CURRENTSTATE.variable.id)
 		{
 			//	cout << "Pushing value " << CURRENTSTATE.value.id << " for variable " << stateAssignments.at(i).variable.task.name << endl;
 			stateAssignments.at(i).value = CURRENTSTATE.value;
@@ -1751,32 +1797,30 @@ void writeSolution(vector<vector<State>> stateAssignments) {
 		// Collect data from solution and place it into the vectors
 		for (State state : solution)
 		{
-			// If it is not a repeated state
-			if (state.value.id != -2)
+
+			employeeData.push_back(state.value.employee.name);
+			taskData.push_back(state.variable.task.name);
+			durationString = to_string(state.variable.getTaskDuration(state.value.employee.role));
+			durationData.push_back(durationString);
+
+			stringstream timeString;
+			struct std::tm hora;
+			localtime_s(&hora, &state.value.date);
+			timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
+			dateData.push_back(timeString.str());
+
+			// If there was no SCRUM implementation, we make the calculation of the finish Date
+			if (scrumTime == -1)
 			{
-				employeeData.push_back(state.value.employee.name);
-				taskData.push_back(state.variable.task.name);
-				durationString = to_string(state.variable.getTaskDuration(state.value.employee.role));
-				durationData.push_back(durationString);
-
-				stringstream timeString;
-				struct std::tm hora;
-				localtime_s(&hora, &state.value.date);
-				timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
-				dateData.push_back(timeString.str());
-
-				// If there was no SCRUM implementation, we make the calculation of the finish Date
-				if (scrumTime == -1)
+				// We replace it only if it is after the already calculated one
+				time_t lastStateDateTemp = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+				if (lastStateDateTemp > lastStateDate)
 				{
-					// We replace it only if it is after the already calculated one
-					time_t lastStateDateTemp = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
-					if (lastStateDateTemp > lastStateDate)
-					{
-						lastStateDate = lastStateDateTemp;
-					}
-
+					lastStateDate = lastStateDateTemp;
 				}
+
 			}
+
 
 		}
 
@@ -2002,27 +2046,19 @@ bool DFS(vector<State>& stateAssignments) {
 				currentState.value = VALUE;
 				if (isMutex(currentState, stateAssignments) == false)
 				{
-					// We check if all dependencies have been met
-					if (allDependenciesAssigned(stateAssignments, currentState) == true)
-					{
-						// We push the value into the assignedVariables list and execute the recursive call
-						pushAssignedState(currentState, stateAssignments);
-						bool result = DFS(stateAssignments);
+					// We push the value into the assignedVariables list and execute the recursive call
+					pushAssignedState(currentState, stateAssignments);
+					bool result = DFS(stateAssignments);
 
-						// If the call result is failure, we delete the assignment
-						if (result == false)
-						{
-							deleteAssignedVariable(currentState, stateAssignments);
-						}
-						else {
-							return true;
-						}
+					// If the call result is failure, we delete the assignment
+					if (result == false)
+					{
+						deleteAssignedVariable(currentState, stateAssignments);
 					}
-					// If not all dependencies have been assigned, we push the current state to the back and continue to the next variable
 					else {
-						pushDependantState(currentState, stateAssignments);
-						bool result = DFS(stateAssignments);
+						return true;
 					}
+
 				}
 			}
 		}
@@ -2171,13 +2207,12 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 	{
 		/*cout << "Number of solution vectors: " << solutionsVector.size() << endl;
 		cout << endl;*/
-
 		vector<Value> candidateValues;
 		tempState.variable = VARIABLE;
 
 		vector<vector<State>> solutionsCopy = solutionsVector;
 
-		// For each instantiated assignment
+		// For each vector of instantiated assignments
 		for (vector<State> VECTOR : solutionsVector)
 		{
 
@@ -2423,6 +2458,9 @@ int main()
 	cout << endl;
 
 	std::vector<Task> taskList = fillTasks(tasksData);
+	printTasks(taskList);
+
+	moveDependenciesToEnd(taskList);
 	printTasks(taskList);
 
 	// We check if there are enough weeks to perform the project
