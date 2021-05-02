@@ -21,12 +21,12 @@ using namespace std;
 
 // Static variables not dependant on classes
 static int labourDays = 5;
-static int startHour = 9;
-static int finishHour = 17;
-static int numberOfWeeks = 2;
-static int hoursPerDay = finishHour - startHour;
+static int startHour;
+static int finishHour;
+static int numberOfWeeks;
+static int hoursPerDay;
 static std::string lunchTime;
-static int scrumTime = 11;
+static int scrumTime;
 static std::tm startDate;
 
 
@@ -2482,38 +2482,51 @@ vector<State> insertSCRUM(vector<State>& stateAssignments) {
 
 int main()
 {
-
+	// cout << "Please introduce the initial date of the project" << endl;
 	startDate = {};
 	std::locale mylocale("");
-	//std::istringstream ss("2021-02-22T09:00:00Z");
-	std::istringstream ss("2021-02-22T10:00:00");
+	std::istringstream ss("2021-02-22T09:00:00");
 	ss.imbue(std::locale(mylocale));
 	ss >> std::get_time(&startDate, "%Y-%m-%dT%H:%M:%S");
+
+	startHour = startDate.tm_hour;
+
+	// cout << "Please introduce time at which the day ends " << endl;
+	finishHour = 17;
+
+	// cout << "Please introduce time at which the daily SCRUM meeting takes place " << endl;
+	scrumTime = 11;
+
+	// Variable initialized after time has been set
+	hoursPerDay = finishHour - startHour;
+
+	// cout << "Please introduce the estimated duration of the project in weeks" << endl
+	numberOfWeeks = 2;
 
 	//std::istringstream ss("");
 	//startDate = std::get_time(&t, "%Y-%b-%d %H:%M:%S");
 
-	cout << "Welcome to the SCRUM Scheduler, schedule is 9-17, Monday to Friday" << endl;
-	// cout << "Please introduce the initial date of the project" << endl;
+	cout << "Welcome to the SCRUM Scheduler, schedule is " << startHour << "-" << finishHour << ", Monday to Friday" << endl;
+	
 	if (ss.fail()) {
 		std::cout << "Parse failed\n";
 	}
 	else {
 		std::cout << "Initial date of the project is " << std::put_time(&startDate, "%Y-%m-%dT%H:%M:%S") << endl;
 	}
-	// cout << "Please introduce the estimated duration of the project in weeks" << endl;
+	;
 	cout << "Estimated duration of the project is " << numberOfWeeks << " weeks" << endl;
 
 	// We check if the inputs are correct
-	if (scrumTime <= startHour || scrumTime >= finishHour)
+	if ( (scrumTime <= startHour && scrumTime != -1) || (scrumTime >= finishHour && scrumTime != -1) )
 	{
 		cout << "ERROR: ScrumTime must be between the labour hours" << endl;
 		return -1;
 	}
 
 	// Read both CSVs
-	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("20employees.csv");
-	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("26tasks.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("3employees.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks.csv");
 
 	// We print both CSVs
 	//cout << "***Printing employee Data***" << endl;
@@ -2622,7 +2635,13 @@ int main()
 	BSSOLUTIONS = BeamSearch(stateAssignments, 20, 2, 3);
 	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
 
-	cout << "Printing solutions" << endl;
+	cout << "Printing DFS solution" << endl;
+	cout << "------------" << endl;
+	printStateAssignments(DFSSOLUTION);
+	cout << endl;
+
+
+	cout << "Printing BS solutions" << endl;
 	cout << "------------" << endl;
 	for (vector<State> SOLUTION : BSSOLUTIONS)
 	{
