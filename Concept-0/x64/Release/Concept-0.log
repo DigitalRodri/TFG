@@ -4,9 +4,10 @@ C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Conc
 C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(930,30): warning C4244: 'argument': conversion from 'time_t' to 'int', possible loss of data
 C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(1379,70): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(1401,62): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\Concept-0\Concept-0.cpp(2428,9): warning C4101: 'tempDate': unreferenced local variable
   Generating code
-  4 of 2541 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+  315 of 2541 functions (12.4%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    1 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Concept-0.vcxproj -> C:\Users\rodri\OneDrive\UC3M\Cuarto Curso\Trabajo de Fin de Grado\Concept 0\Concept-0\x64\Release\Concept-0.exe

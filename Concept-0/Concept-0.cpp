@@ -1902,9 +1902,6 @@ void writeSolution(vector<State> stateAssignments) {
 			lastStateDate = lastStateDateTemp;
 		}
 
-
-
-
 	}
 
 	// We add a final state for the end of the project
@@ -1918,7 +1915,6 @@ void writeSolution(vector<State> stateAssignments) {
 	timeString << std::put_time(&hora, "%Y-%m-%dT%H:%M:%S");
 	dateData.push_back(timeString.str());
 
-
 	// Insert column name and data into solution vector
 	solutions.push_back(std::make_pair("Employee", employeeData));
 	solutions.push_back(std::make_pair("Task", taskData));
@@ -1930,8 +1926,6 @@ void writeSolution(vector<State> stateAssignments) {
 	dateData.clear();
 	durationData.clear();
 	lastStateDate = 00000;
-
-
 
 	// Call to the writing CSV function with the data
 	writeCSV("DFSSolution.csv", solutions);
@@ -2428,19 +2422,21 @@ vector<State> insertSCRUM(vector<State>& stateAssignments) {
 	cout << "Inserting SCRUM dailies" << endl;
 	cout << "------------" << endl;
 
-	static std::tm finishDate;
+	// We copy the static variables into local copies
+	time_t localStartDate = mktime(&startDate);
+	time_t localFinishDate = 00000;
+	time_t tempDate;
 
 	// We get the finishing date
 	for (State state : stateAssignments)
 	{
-		time_t tempDate;
-		tempDate = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
-		localtime_s(&finishDate, &tempDate);
+		time_t lastStateDateTemp = state.variable.getTaskFinishTime(state.value.employee.role, state.value.date);
+		if (lastStateDateTemp > localFinishDate)
+		{
+			localFinishDate = lastStateDateTemp;
+		}
+		
 	}
-
-	// We copy the static variables into local copies
-	time_t localStartDate = mktime(&startDate);
-	time_t localFinishDate = mktime(&finishDate);
 
 	// We initialize all the values of the SCRUM task except the date
 	Task tempTask;
@@ -2583,7 +2579,7 @@ int main()
 	cout << "Calculating mutex" << endl;
 	cout << "------------" << endl;
 	std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
-	int mutexResult = callMutex(1);
+	int mutexResult = callMutex(2);
 	std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
 
 	if (mutexResult == -1)
@@ -2604,8 +2600,6 @@ int main()
 	/* Search algorithms execution*/
 	cout << "Beginning Search algorithm(s)" << endl;
 	cout << "------------" << endl;
-
-
 
 	cout << "Beginning DFS" << endl;
 	cout << "------------" << endl;
