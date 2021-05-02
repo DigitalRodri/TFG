@@ -174,6 +174,46 @@ public:
 		return 0;
 	}
 
+	void advanceWeekend(time_t& timeToAdvance) {
+
+		tm localTmTime;
+
+		// We place the tmtime variable back to the last calculation we made
+		localtime_s(&localTmTime, &timeToAdvance);
+
+		// If we are in Saturday or Sunday, we advance until monday
+		// Saturday
+		if (localTmTime.tm_wday == 6)
+		{
+			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+			{
+				cout << "Advancing time from Saturday to Monday" << endl;
+			}*/
+
+			timeToAdvance += (static_cast<unsigned __int64>(48)) * 3600;
+		}
+		// Sunday
+		else if (localTmTime.tm_wday == 0)
+		{
+			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
+			{
+				cout << "Advancing time Sunday to Monday" << endl;
+			}*/
+
+			timeToAdvance += (static_cast<unsigned __int64>(24)) * 3600;
+		}
+	}
+
+	void printInDetail(time_t& timeToPrint) {
+
+		char printBuffer[26];
+		tm localTmTime;
+
+		localtime_s(&localTmTime, &timeToPrint);
+		strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &localTmTime);
+		cout << printBuffer << endl;
+	}
+
 	time_t getTaskFinishTime(string role, time_t startTime) {
 
 		// Auxiliary variables
@@ -190,6 +230,9 @@ public:
 		struct tm tmtimeSCRUM;
 		char printBuffer[26];
 
+		/*cout << "Task " << task.name << " starts at: ";
+		printInDetail(startTime);*/
+
 
 		/*if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
 		{
@@ -202,7 +245,15 @@ public:
 		// If the task spans more than one labour day, we advance the days directly and add the remaining hours
 		if (taskDays != 0)
 		{
-			timePlusDays = timePlusDays + taskDays * (static_cast<unsigned __int64>(24)) * 3600;
+			for (size_t i = 1; i <= taskDays; i++)
+			{
+				timePlusDays += (static_cast<unsigned __int64>(24)) * 3600;
+
+				// Each day we advance we check if its weekend and advance until Monday
+				advanceWeekend(timePlusDays);
+
+			}
+			
 
 			// If SCRUM is enabled, we add as many hours as days we have advanced
 			if (scrumTime != -1)
@@ -215,14 +266,14 @@ public:
 			}
 
 			localtime_s(&tmtime, &timePlusDays);
-			if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
+			/*if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
 			{
 				localtime_s(&tmtime, &timePlusDays);
 				strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
 				cout << "Remainder is " << remainder << endl;
 				cout << "taskDays is " << taskDays << endl;
 				cout << "Initial finish time without remainder: " << printBuffer << " remainder is " << remainder << endl;
-			}
+			}*/
 
 			// We add the remainder hours
 			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(remainder)) * 3600;
@@ -264,30 +315,8 @@ public:
 
 		}
 
-		// We place the tmtime variable back to the last calculation we made
-		localtime_s(&tmtime, &timePlusDays);
-
-		// If we are in Saturday or Sunday, we advance until monday
-		// Saturday
-		if (tmtime.tm_wday == 6)
-		{
-			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
-			{
-				cout << "Advancing time from Saturday to Monday" << endl;
-			}*/
-
-			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(48)) * 3600;
-		}
-		// Sunday
-		else if (tmtime.tm_wday == 0)
-		{
-			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
-			{
-				cout << "Advancing time Sunday to Monday" << endl;
-			}*/
-
-			timePlusDays = timePlusDays + (static_cast<unsigned __int64>(24)) * 3600;
-		}
+		// We check if its weekend and advance until Monday
+		advanceWeekend(timePlusDays);
 
 		finishTime = timePlusDays;
 
@@ -361,31 +390,8 @@ public:
 			}*/
 		}
 
-		// We get the pointer to the latest time definition
-		localtime_s(&tmtime, &finishTime);
-
-		// If we are in Saturday or Sunday, we advance until monday
-		// Saturday
-		if (tmtime.tm_wday == 6)
-		{
-			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
-			{
-				cout << "Advancing time from Saturday to Monday" << endl;
-			}*/
-
-			finishTime = finishTime + (static_cast<unsigned __int64>(48)) * 3600;
-		}
-		// Sunday
-		else if (tmtime.tm_wday == 0)
-		{
-			/*if (task.name.compare("Implementation") == 0 && role.compare("CTO") == 0)
-			{
-				cout << "Advancing time Sunday to Monday" << endl;
-			}*/
-
-			finishTime = finishTime + (static_cast<unsigned __int64>(24)) * 3600;
-		}
-
+		// We check if its weekend and advance until Monday
+		advanceWeekend(finishTime);
 
 		/*if (task.name.compare("Character Design") == 0 && role.compare("CEO") == 0)
 		{
@@ -393,6 +399,9 @@ public:
 			strftime(printBuffer, 26, "%Y-%m-%d %H:%M:%S", &tmtime);
 			cout << "Final finish time: " << printBuffer << endl;
 		}*/
+
+		/*cout << "Task " << task.name << " finishes at: ";
+		printInDetail(finishTime);*/
 
 		// We return the final finishTime
 		return finishTime;
@@ -2067,7 +2076,7 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 	return solutionVector;
 }
 
-void purgeSolutions(vector<vector<State>>& solutionsVector, Variable VARIABLE, int numberOfKCandidates) {
+void purgeSolutions(vector<vector<State>>& solutionsVector, int numberOfKCandidates) {
 
 	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variablee
 	std::sort(std::execution::par_unseq, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDate);
@@ -2077,7 +2086,7 @@ void purgeSolutions(vector<vector<State>>& solutionsVector, Variable VARIABLE, i
 	solutionsVector = auxVector;
 }
 
-void purgeSolutionsFullStack(vector<vector<State>>& solutionsVector, Variable VARIABLE, int numberOfKCandidates) {
+void purgeSolutionsFullStack(vector<vector<State>>& solutionsVector, int numberOfKCandidates) {
 
 	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variablee
 	std::sort(std::execution::par_unseq, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDateFullStack);
@@ -2362,14 +2371,14 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 			switch (beamMode)
 			{
 			case 1:
-				purgeSolutions(solutionsCopy, VARIABLE, numberOfKCandidates);
+				purgeSolutions(solutionsCopy, numberOfKCandidates);
 				break;
 			case 2:
-				purgeSolutionsFullStack(solutionsCopy, VARIABLE, numberOfKCandidates);
+				purgeSolutionsFullStack(solutionsCopy, numberOfKCandidates);
 				break;
 			default:
 				// Default algorithm is number 1
-				purgeSolutions(solutionsCopy, VARIABLE, numberOfKCandidates);
+				purgeSolutions(solutionsCopy, numberOfKCandidates);
 				break;
 			}
 
@@ -2389,8 +2398,7 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 	cout << endl;
 
 	// From the solution, we get the best wantedSolutions results given any K
-	Variable lastVariable = solutionsVector.back().back().variable;
-	purgeSolutions(solutionsVector, lastVariable, wantedSolutions);
+	purgeSolutions(solutionsVector, wantedSolutions);
 
 	return solutionsVector;
 }
@@ -2525,8 +2533,8 @@ int main()
 	}
 
 	// Read both CSVs
-	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("3employees.csv");
-	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("tasks.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("20employees.csv");
+	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("26tasks.csv");
 
 	// We print both CSVs
 	//cout << "***Printing employee Data***" << endl;
@@ -2575,7 +2583,7 @@ int main()
 	cout << "Calculating mutex" << endl;
 	cout << "------------" << endl;
 	std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
-	int mutexResult = callMutex(2);
+	int mutexResult = callMutex(1);
 	std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
 
 	if (mutexResult == -1)
@@ -2632,7 +2640,7 @@ int main()
 	cout << "------------" << endl;
 
 	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
-	BSSOLUTIONS = BeamSearch(stateAssignments, 20, 2, 3);
+	BSSOLUTIONS = BeamSearch(stateAssignments, 200, 2, 3);
 	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
 
 	cout << "Printing DFS solution" << endl;
