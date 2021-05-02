@@ -21,12 +21,12 @@ using namespace std;
 
 // Static variables not dependant on classes
 static int labourDays = 5;
-static int startHour = 10;
-static int finishHour = 16;
+static int startHour = 9;
+static int finishHour = 17;
 static int numberOfWeeks = 2;
 static int hoursPerDay = finishHour - startHour;
 static std::string lunchTime;
-static int scrumTime = -1;
+static int scrumTime = 11;
 static std::tm startDate;
 
 
@@ -2504,6 +2504,13 @@ int main()
 	// cout << "Please introduce the estimated duration of the project in weeks" << endl;
 	cout << "Estimated duration of the project is " << numberOfWeeks << " weeks" << endl;
 
+	// We check if the inputs are correct
+	if (scrumTime <= startHour || scrumTime >= finishHour)
+	{
+		cout << "ERROR: ScrumTime must be between the labour hours" << endl;
+		return -1;
+	}
+
 	// Read both CSVs
 	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("20employees.csv");
 	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("26tasks.csv");
@@ -2563,7 +2570,7 @@ int main()
 		cout << "*////////////////////*" << endl;
 		cout << endl;
 		cout << "***MUTEX FAILURE***" << endl;
-		cout << "Viable multithreading options are 1, 2, 4, or 6" << endl;
+		cout << "ERROR: Viable multithreading options are 1, 2, 4, or 6" << endl;
 		return -1;
 		cout << endl;
 	}
