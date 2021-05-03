@@ -1961,7 +1961,7 @@ bool compareValuesByDate(Value v1, Value v2) {
 	return (v1.date < v2.date);
 }
 
-bool compareStateVectorByDate(vector<State> s1, vector<State> s2) {
+bool compareStateVectorByStartDate(vector<State> s1, vector<State> s2) {
 
 	time_t s1Date = 00000;
 	time_t s2Date = 00000;
@@ -1980,6 +1980,31 @@ bool compareStateVectorByDate(vector<State> s1, vector<State> s2) {
 		if (STATE.value.id != -1)
 		{
 			s2Date = STATE.value.date;
+		}
+	}
+
+	return (s1Date < s2Date);
+}
+
+bool compareStateVectorByFinishDate(vector<State> s1, vector<State> s2) {
+
+	time_t s1Date = 00000;
+	time_t s2Date = 00000;
+
+	// We traverse the states and get the last value that is not -1
+	for (State STATE : s1)
+	{
+		if (STATE.value.id != -1)
+		{
+			s1Date = STATE.variable.getTaskFinishTime(STATE.value.employee.role, STATE.value.date);
+		}
+	}
+
+	for (State STATE : s2)
+	{
+		if (STATE.value.id != -1)
+		{
+			s2Date = STATE.variable.getTaskFinishTime(STATE.value.employee.role, STATE.value.date);
 		}
 	}
 
@@ -2070,10 +2095,20 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 	return solutionVector;
 }
 
-void purgeSolutions(vector<vector<State>>& solutionsVector, int numberOfKCandidates) {
+void purgeSolutionsStartDate(vector<vector<State>>& solutionsVector, int numberOfKCandidates) {
 
-	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variablee
-	std::sort(std::execution::par_unseq, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByDate);
+	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variable
+	std::sort(std::execution::par_unseq, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByStartDate);
+
+	// We get the K values from the vector
+	vector<vector<State>> auxVector(solutionsVector.begin(), solutionsVector.begin() + numberOfKCandidates);
+	solutionsVector = auxVector;
+}
+
+void purgeSolutionsFinishDate(vector<vector<State>>& solutionsVector, int numberOfKCandidates) {
+
+	// We sort the solutions in ascendant order, best ones are the ones with the lowest value of the corresponding Variable
+	std::sort(std::execution::par_unseq, solutionsVector.begin(), solutionsVector.end(), compareStateVectorByFinishDate);
 
 	// We get the K values from the vector
 	vector<vector<State>> auxVector(solutionsVector.begin(), solutionsVector.begin() + numberOfKCandidates);
@@ -2259,6 +2294,9 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 	case 2:
 		cout << "Chosen algorithm: 2" << endl;
 		break;
+	case 3:
+		cout << "Chosen algorithm: 3" << endl;
+		break;
 	default:
 		// Default algorithm is number 1
 		cout << "Chosen algorithm: 1" << endl;
@@ -2365,14 +2403,17 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 			switch (beamMode)
 			{
 			case 1:
-				purgeSolutions(solutionsCopy, numberOfKCandidates);
+				purgeSolutionsStartDate(solutionsCopy, numberOfKCandidates);
 				break;
 			case 2:
+				purgeSolutionsFinishDate(solutionsCopy, numberOfKCandidates);
+				break;
+			case 3:
 				purgeSolutionsFullStack(solutionsCopy, numberOfKCandidates);
 				break;
 			default:
 				// Default algorithm is number 1
-				purgeSolutions(solutionsCopy, numberOfKCandidates);
+				purgeSolutionsStartDate(solutionsCopy, numberOfKCandidates);
 				break;
 			}
 
@@ -2392,7 +2433,7 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 	cout << endl;
 
 	// From the solution, we get the best wantedSolutions results given any K
-	purgeSolutions(solutionsVector, wantedSolutions);
+	purgeSolutionsFinishDate(solutionsVector, wantedSolutions);
 
 	return solutionsVector;
 }
@@ -2499,7 +2540,7 @@ int main()
 	finishHour = 17;
 
 	// cout << "Please introduce time at which the daily SCRUM meeting takes place " << endl;
-	scrumTime = 11;
+	scrumTime = -1;
 
 	// Variable initialized after time has been set
 	hoursPerDay = finishHour - startHour;
@@ -2633,8 +2674,11 @@ int main()
 	cout << "Beginning Beam Search" << endl;
 	cout << "------------" << endl;
 
+	// Alg1: Start date
+	// Alg2: Finish date
+	// Alg3: Sum of all start dates
 	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
-	BSSOLUTIONS = BeamSearch(stateAssignments, 200, 2, 3);
+	BSSOLUTIONS = BeamSearch(stateAssignments, 20, 2, 3);
 	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
 
 	cout << "Printing DFS solution" << endl;
