@@ -1,0 +1,8 @@
+Name,Duration,Compatibility,Dependencies
+Concept,8 | 7,CEO|Programmer,-
+Design,10,Programmer,Concept
+Validation,5,Programmer,Design
+Implementation,25 | 25,CEO|Programmer,Validation
+Verification,8,Lawyer,Implementation
+Testing,8 | 6 | 10,CEO|Programmer|Lawyer,Verification
+Release,6,CEO,Testing

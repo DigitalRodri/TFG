@@ -1,11 +1,11 @@
 Name,Duration,Compatibility,Dependencies
-Concept,2,Programmer,-
-Environmental Design,2,Programmer,Concept
-Character Design,2,Programmer,Environmental Design
-Level Design,2,Programmer,Character Design
-Music Aligment,2,Programmer,Level Design
-Music Late Motifs,2,Programmer,Music Aligment
-Combat Programming,2,Programmer,Music Late Motifs
-World Programming,2,Programmer,Combat Programming
-Inventory Programming,2,Programmer,World Programming
-Music Testing,2,Programmer,Inventory Programming
+Concept,1,Programmer,-
+Environmental Design,1,Programmer,Concept
+Character Design,1,Programmer,Environmental Design
+Level Design,1,Programmer,Character Design
+Music Aligment,1,Programmer,Level Design
+Music Late Motifs,1,Programmer,Music Aligment
+Combat Programming,1,Programmer,Music Late Motifs
+World Programming,1,Programmer,Combat Programming
+Inventory Programming,1,Programmer,World Programming
+Music Testing,1,Programmer,Inventory Programming

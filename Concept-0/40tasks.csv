@@ -1,0 +1,41 @@
+Name,Duration,Compatibility,Dependencies
+Concept,8,CEO,-
+Environmental Design,10,Programmer,Concept
+Character Design,9,Designer,Concept
+Level Design,15,Designer,Concept
+Music Aligment,18,Designer,Concept
+Music Ambient,10,Designer,Concept
+Music Late Motifs,14,Designer,Concept
+Combat Programming,15,Programmer,Music Late Motifs|Level Design
+World Programming,10,Programmer,Concept
+Inventory Programming,10,Programmer,Concept
+Music Testing,7,Programmer,Music Late Motifs
+Programming Testing,10,Programmer,Inventory Programming
+Debugging,19,Programmer,World Programming|Combat Programming|Inventory Programming
+Design Testing,12,Programmer,Level Design
+Legal Preparation,15,Lawyer,Concept
+Copyright Research,7,Lawyer,Concept
+Patent Infrigement,8,Lawyer,Concept
+Contract Revision,11,Lawyer,Concept
+IP Registration,12,Lawyer,Concept
+Competition,6,Marketing,Concept
+Advertisements,15,Marketing,Promotional Material
+Influencer Contracts,20,Marketing,Concept
+Promotional Materials,14,Marketing,Concept
+Media Liaison,15,Marketing,Concept
+Recruitment Campaign,18,Marketing,Concept
+Social Networks,15,Marketing,Concept
+Salary payments,8,HR,SS Contracts
+Documentation,14,HR,Concept
+IRPF Management,10,HR,SS Contracts
+SS Contracts,10,HR,Concept
+Recruitment,12,HR,Concept
+Health and Safety,7,HR,Concept
+Expansion Investigation,8,HR,Concept
+Monthly Expenditure,7,Accounting,Payrolls
+Investments Payoff,21,Accounting,Concept
+Future Viability,10,Accounting,Concept
+Cost Reducing,14,Accounting,Monthly Expenditure
+Real Estate Investigation,22,Accounting,Concept
+Tax Returns,17,Accounting,Concept
+Payrolls,14,Accounting,Concept

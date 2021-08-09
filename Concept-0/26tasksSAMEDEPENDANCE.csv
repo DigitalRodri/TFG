@@ -1,0 +1,27 @@
+Name,Duration,Compatibility,Dependencies
+Concept,1,Programmer,-
+Environmental Design,1,Programmer,Concept
+Character Design,1,Programmer,Environmental Design
+Level Design,1,Programmer,Character Design
+Music Aligment,1,Programmer,Level Design
+Music Late Motifs,1,Programmer,Music Aligment
+Combat Programming,1,Programmer,Music Late Motifs
+World Programming,1,Programmer,Combat Programming
+Inventory Programming,1,Programmer,World Programming
+Music Testing,1,Programmer,Inventory Programming
+Programming Testing,1,Programmer,Music Testing
+Design Testing,1,Programmer,Programming Testing
+Legal Preparation,1,Programmer,Design Testing
+Copyright Research,1,Programmer,Legal Preparation
+Patent Infrigement,1,Programmer,Copyright Research
+IP Registration,1,Programmer,Patent Infrigement
+Competition,1,Programmer,IP Registration
+Advertisements,1,Programmer,Competition
+Influencer Contracts,1,Programmer,Advertisements
+IRPF Management,1,Programmer,Influencer Contracts
+Task 1,1,Programmer,IRPF Management
+Task 2,1,Programmer,Task 1
+Task 3,1,Programmer,Task 2
+Task 4,1,Programmer,Task 3
+Task 5,1,Programmer,Task 4
+Task 6,1,Programmer,Task 5

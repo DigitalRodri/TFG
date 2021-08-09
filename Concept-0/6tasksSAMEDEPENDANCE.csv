@@ -1,0 +1,7 @@
+Name,Duration,Compatibility,Dependencies
+Concept,1,Programmer,-
+Environmental Design,1,Programmer,Concept
+Character Design,1,Programmer,Environmental Design
+Level Design,1,Programmer,Character Design
+Music Aligment,1,Programmer,Level Design
+Music Late Motifs,1,Programmer,Music Aligment

@@ -28,6 +28,10 @@ static int hoursPerDay;
 static std::string lunchTime;
 static int scrumTime;
 static std::tm startDate;
+int DFSCounterExpanded = 0;
+int DFSCounterNodes = 0;
+int BSCounterExpanded = 0;
+int BSCounterNodes = 0;
 
 
 class Task {
@@ -2055,7 +2059,7 @@ vector<Value> getMostFavourableValues(vector<Value> valuesVector, int numberOfKC
 	vector<Value> solutionVector;
 
 	// We first sort the array of dates
-	std::sort(std::execution::seq, valuesVector.begin(), valuesVector.end(), compareValuesByDate);
+	std::sort(std::execution::par_unseq, valuesVector.begin(), valuesVector.end(), compareValuesByDate);
 
 	// Counter for how many distinct elements have been pushed
 	int counter = 0;
@@ -2152,6 +2156,8 @@ bool DFS(vector<State>& stateAssignments) {
 				currentState.value = VALUE;
 				if (isMutex(currentState, stateAssignments) == false)
 				{
+					DFSCounterExpanded++;
+
 					// We push the value into the assignedVariables list and execute the recursive call
 					pushAssignedState(currentState, stateAssignments);
 					bool result = DFS(stateAssignments);
@@ -2166,6 +2172,8 @@ bool DFS(vector<State>& stateAssignments) {
 					}
 
 				}
+
+				DFSCounterNodes++;
 			}
 		}
 
@@ -2337,11 +2345,13 @@ vector<vector<State>> BeamSearch(vector<State>& stateAssignments, int numberOfKC
 					// If the current value is not mutex with the already asigned variables
 					if (isMutex(tempState, VECTOR) == false)
 					{
+						BSCounterExpanded++;
 						// We add it to the vector of candidates
 						candidateValues.push_back(VALUE);
 
 					}
 
+					BSCounterNodes++;
 				}
 
 				//// If we have more than 10000 values we stop looking for more
@@ -2525,204 +2535,206 @@ vector<State> insertSCRUM(vector<State>& stateAssignments) {
 	return stateAssignments;
 }
 
-int main()
-{
-	// cout << "Please introduce the initial date of the project" << endl;
-	startDate = {};
-	std::locale mylocale("");
-	std::istringstream ss("2021-02-22T09:00:00");
-	ss.imbue(std::locale(mylocale));
-	ss >> std::get_time(&startDate, "%Y-%m-%dT%H:%M:%S");
-
-	startHour = startDate.tm_hour;
-
-	// cout << "Please introduce time at which the day ends " << endl;
-	finishHour = 17;
-
-	// cout << "Please introduce time at which the daily SCRUM meeting takes place " << endl;
-	scrumTime = -1;
-
-	// Variable initialized after time has been set
-	hoursPerDay = finishHour - startHour;
-
-	// cout << "Please introduce the estimated duration of the project in weeks" << endl
-	numberOfWeeks = 2;
-
-	//std::istringstream ss("");
-	//startDate = std::get_time(&t, "%Y-%b-%d %H:%M:%S");
-
-	cout << "Welcome to the SCRUM Scheduler, schedule is " << startHour << "-" << finishHour << ", Monday to Friday" << endl;
-	
-	if (ss.fail()) {
-		std::cout << "Parse failed\n";
-	}
-	else {
-		std::cout << "Initial date of the project is " << std::put_time(&startDate, "%Y-%m-%dT%H:%M:%S") << endl;
-	}
-	;
-	cout << "Estimated duration of the project is " << numberOfWeeks << " weeks" << endl;
-
-	// We check if the inputs are correct
-	if ( (scrumTime <= startHour && scrumTime != -1) || (scrumTime >= finishHour && scrumTime != -1) )
-	{
-		cout << "ERROR: ScrumTime must be between the labour hours" << endl;
-		return -1;
-	}
-
-	// Read both CSVs
-	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("20employees.csv");
-	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("26tasks.csv");
-
-	// We print both CSVs
-	//cout << "***Printing employee Data***" << endl;
-	//cout << endl;
-	//printCSV(employeesData);
-	//cout << "*////////////////////*" << endl;
-	//cout << endl;
-	//cout << "***Printing tasks Data***" << endl;
-	//cout << endl;
-	//printCSV(tasksData);
-	//cout << "*////////////////////*" << endl;
-	//cout << endl;
-
-	std::vector<Employee> employeeList = fillEmployees(employeesData);
-	printEmployees(employeeList);
-
-	cout << endl;
-	cout << "*////////////////////*" << endl;
-	cout << endl;
-
-	std::vector<Task> taskList = fillTasks(tasksData);
-	printTasks(taskList);
-
-	moveDependenciesToEnd(taskList);
-	printTasks(taskList);
-
-	// We check if there are enough weeks to perform the project
-	/*if (isEnoughWeeks(employeeList, taskList) == -1)
-	{
-		cout << "***FAILURE***" << endl;
-		cout << "Not enough time to finish the project, increase the number of weeks" << endl;
-		return -1;
-	}*/
-
-	std::chrono::steady_clock::time_point beginGrounding = std::chrono::steady_clock::now();
-	grounding(employeeList, taskList);
-	std::chrono::steady_clock::time_point endGrounding = std::chrono::steady_clock::now();
-	printVariables();
-
-	// Number of values = weeks*days*hours*employees
-	printDomains();
-
-	/*const auto processorCount = std::thread::hardware_concurrency();
-	std::cout << "Number of processors in the machine:" << processorCount << endl;*/
-
-	cout << "Calculating mutex" << endl;
-	cout << "------------" << endl;
-	std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
-	int mutexResult = callMutex(2);
-	std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
-
-	if (mutexResult == -1)
-	{
-		cout << "*////////////////////*" << endl;
-		cout << endl;
-		cout << "***MUTEX FAILURE***" << endl;
-		cout << "ERROR: Viable multithreading options are 1, 2, 4, or 6" << endl;
-		return -1;
-		cout << endl;
-	}
-
-	std::cout << "Time elapsed Mutex = " << (std::chrono::duration_cast<std::chrono::microseconds>(endMutex - beginMutex).count()) / 1000000.0 << std::endl;
-
-	/* We create a vector of States with unassigned Variables */
-	vector<State> stateAssignments = createStateVector();
-
-	/* Search algorithms execution*/
-	cout << "Beginning Search algorithm(s)" << endl;
-	cout << "------------" << endl;
-
-	cout << "Beginning DFS" << endl;
-	cout << "------------" << endl;
-
-	std::chrono::steady_clock::time_point beginDFS = std::chrono::steady_clock::now();
-	bool DFSResult = DFS(stateAssignments);
-	//bool DFSResult = true;
-	std::chrono::steady_clock::time_point endDFS = std::chrono::steady_clock::now();
-	DFSSOLUTION = stateAssignments;
-	cout << endl;
-
-	// If DFS is not succesful, BS wont be
-	if (DFSResult == true)
-	{
-		cout << "*////////////////////*" << endl;
-		cout << endl;
-		cout << "***DFS SUCCESS***" << endl;
-		cout << endl;
-	}
-	else {
-		cout << "*////////////////////*" << endl;
-		cout << endl;
-		cout << "***DFS FAILURE***" << endl;
-		return -1;
-		cout << endl;
-	}
-
-	/* We recreate a vector of States */
-	stateAssignments = createStateVector();
-
-	cout << "Beginning Beam Search" << endl;
-	cout << "------------" << endl;
-
-	// Alg1: Start date
-	// Alg2: Finish date
-	// Alg3: Sum of all start dates
-	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
-	BSSOLUTIONS = BeamSearch(stateAssignments, 20, 2, 3);
-	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
-
-	cout << "Printing DFS solution" << endl;
-	cout << "------------" << endl;
-	printStateAssignments(DFSSOLUTION);
-	cout << endl;
-
-
-	cout << "Printing BS solutions" << endl;
-	cout << "------------" << endl;
-	for (vector<State> SOLUTION : BSSOLUTIONS)
-	{
-		printStateAssignments(SOLUTION);
-		cout << "--" << endl;
-	}
-	// Get best solution | TAKES HOURS
-	//DFSComplete(stateAssignments);
-
-	// We insert the SCRUM dailies into the solution if they're enabled
-	if (scrumTime != -1)
-	{
-		DFSSOLUTION = insertSCRUM(DFSSOLUTION);
-		vector<vector<State>> BSCopy;
-
-
-		for (size_t i = 0; i < BSSOLUTIONS.size(); i++)
-		{
-			BSCopy.push_back(insertSCRUM(BSSOLUTIONS.at(i)));
-		}
-
-		BSSOLUTIONS = BSCopy;
-	}
-
-	// We write the solutions into a CSV file
-	writeSolution(DFSSOLUTION);
-	writeSolutions(BSSOLUTIONS);
-
-	std::cout << "Time elapsed Grounding = " << (std::chrono::duration_cast<std::chrono::microseconds>(endGrounding - beginGrounding).count()) / 1000000.0 << std::endl;
-	std::cout << "Time elapsed Mutex = " << (std::chrono::duration_cast<std::chrono::microseconds>(endMutex - beginMutex).count()) / 1000000.0 << std::endl;
-	std::cout << "Time elapsed DFS = " << (std::chrono::duration_cast<std::chrono::microseconds>(endDFS - beginDFS).count()) / 1000000.0 << std::endl;
-	std::cout << "Time elapsed BS = " << (std::chrono::duration_cast<std::chrono::microseconds>(endBS - beginBS).count()) / 1000000.0 << std::endl;
-
-
-	cout << endl;
-	cout << "*////////// Program ended //////////*" << endl;
-	cout << "" << endl;
-}
+//int main()
+//{
+//	// cout << "Please introduce the initial date of the project" << endl;
+//	startDate = {};
+//	std::locale mylocale("");
+//	std::istringstream ss("2021-02-22T09:00:00");
+//	ss.imbue(std::locale(mylocale));
+//	ss >> std::get_time(&startDate, "%Y-%m-%dT%H:%M:%S");
+//
+//	startHour = startDate.tm_hour;
+//
+//	// cout << "Please introduce time at which the day ends " << endl;
+//	finishHour = 17;
+//
+//	// cout << "Please introduce time at which the daily SCRUM meeting takes place " << endl;
+//	scrumTime = -1;
+//
+//	// Variable initialized after time has been set
+//	hoursPerDay = finishHour - startHour;
+//
+//	// cout << "Please introduce the estimated duration of the project in weeks" << endl
+//	numberOfWeeks = 2;
+//
+//	//std::istringstream ss("");
+//	//startDate = std::get_time(&t, "%Y-%b-%d %H:%M:%S");
+//
+//	cout << "Welcome to the SCRUM Scheduler, schedule is " << startHour << "-" << finishHour << ", Monday to Friday" << endl;
+//	
+//	if (ss.fail()) {
+//		std::cout << "Parse failed\n";
+//	}
+//	else {
+//		std::cout << "Initial date of the project is " << std::put_time(&startDate, "%Y-%m-%dT%H:%M:%S") << endl;
+//	}
+//	;
+//	cout << "Estimated duration of the project is " << numberOfWeeks << " weeks" << endl;
+//
+//	// We check if the inputs are correct
+//	if ( (scrumTime <= startHour && scrumTime != -1) || (scrumTime >= finishHour && scrumTime != -1) )
+//	{
+//		cout << "ERROR: ScrumTime must be between the labour hours" << endl;
+//		return -1;
+//	}
+//
+//	// Read both CSVs
+//	std::vector<std::pair<std::string, std::vector<string>>> employeesData = readCSV("5employees.csv");
+//	std::vector<std::pair<std::string, std::vector<string>>> tasksData = readCSV("7tasks.csv");
+//
+//	// We print both CSVs
+//	//cout << "***Printing employee Data***" << endl;
+//	//cout << endl;
+//	//printCSV(employeesData);
+//	//cout << "*////////////////////*" << endl;
+//	//cout << endl;
+//	//cout << "***Printing tasks Data***" << endl;
+//	//cout << endl;
+//	//printCSV(tasksData);
+//	//cout << "*////////////////////*" << endl;
+//	//cout << endl;
+//
+//	std::vector<Employee> employeeList = fillEmployees(employeesData);
+//	printEmployees(employeeList);
+//
+//	cout << endl;
+//	cout << "*////////////////////*" << endl;
+//	cout << endl;
+//
+//	std::vector<Task> taskList = fillTasks(tasksData);
+//	printTasks(taskList);
+//
+//	moveDependenciesToEnd(taskList);
+//	printTasks(taskList);
+//
+//	// We check if there are enough weeks to perform the project
+//	/*if (isEnoughWeeks(employeeList, taskList) == -1)
+//	{
+//		cout << "***FAILURE***" << endl;
+//		cout << "Not enough time to finish the project, increase the number of weeks" << endl;
+//		return -1;
+//	}*/
+//
+//	std::chrono::steady_clock::time_point beginGrounding = std::chrono::steady_clock::now();
+//	grounding(employeeList, taskList);
+//	std::chrono::steady_clock::time_point endGrounding = std::chrono::steady_clock::now();
+//	printVariables();
+//
+//	// Number of values = weeks*days*hours*employees
+//	printDomains();
+//
+//	/*const auto processorCount = std::thread::hardware_concurrency();
+//	std::cout << "Number of processors in the machine:" << processorCount << endl;*/
+//
+//	cout << "Calculating mutex" << endl;
+//	cout << "------------" << endl;
+//	std::chrono::steady_clock::time_point beginMutex = std::chrono::steady_clock::now();
+//	int mutexResult = callMutex(2);
+//	std::chrono::steady_clock::time_point endMutex = std::chrono::steady_clock::now();
+//
+//	if (mutexResult == -1)
+//	{
+//		cout << "*////////////////////*" << endl;
+//		cout << endl;
+//		cout << "***MUTEX FAILURE***" << endl;
+//		cout << "ERROR: Viable multithreading options are 1, 2, 4, or 6" << endl;
+//		return -1;
+//		cout << endl;
+//	}
+//
+//	std::cout << "Time elapsed Mutex = " << (std::chrono::duration_cast<std::chrono::microseconds>(endMutex - beginMutex).count()) / 1000000.0 << std::endl;
+//
+//	/* We create a vector of States with unassigned Variables */
+//	vector<State> stateAssignments = createStateVector();
+//
+//	/* Search algorithms execution*/
+//	cout << "Beginning Search algorithm(s)" << endl;
+//	cout << "------------" << endl;
+//
+//	cout << "Beginning DFS" << endl;
+//	cout << "------------" << endl;
+//
+//	//std::chrono::steady_clock::time_point beginDFS = std::chrono::steady_clock::now();
+//	//bool DFSResult = DFS(stateAssignments);
+//	////bool DFSResult = true;
+//	//std::chrono::steady_clock::time_point endDFS = std::chrono::steady_clock::now();
+//	//DFSSOLUTION = stateAssignments;
+//	//cout << endl;
+//
+//	//// If DFS is not succesful, BS wont be
+//	//if (DFSResult == true)
+//	//{
+//	//	cout << "*////////////////////*" << endl;
+//	//	cout << endl;
+//	//	cout << "***DFS SUCCESS***" << endl;
+//	//	cout << endl;
+//	//}
+//	//else {
+//	//	cout << "*////////////////////*" << endl;
+//	//	cout << endl;
+//	//	cout << "***DFS FAILURE***" << endl;
+//	//	return -1;
+//	//	cout << endl;
+//	//}
+//
+//	/* We recreate a vector of States */
+//	stateAssignments = createStateVector();
+//
+//	cout << "Beginning Beam Search" << endl;
+//	cout << "------------" << endl;
+//
+//	// Alg1: Start date
+//	// Alg2: Finish date
+//	// Alg3: Sum of all start dates
+//	std::chrono::steady_clock::time_point beginBS = std::chrono::steady_clock::now();
+//	BSSOLUTIONS = BeamSearch(stateAssignments, 50, 2, 3);
+//	std::chrono::steady_clock::time_point endBS = std::chrono::steady_clock::now();
+//
+//	cout << "Printing DFS solution" << endl;
+//	cout << "------------" << endl;
+//	printStateAssignments(DFSSOLUTION);
+//	cout << endl;
+//
+//
+//	cout << "Printing BS solutions" << endl;
+//	cout << "------------" << endl;
+//	for (vector<State> SOLUTION : BSSOLUTIONS)
+//	{
+//		printStateAssignments(SOLUTION);
+//		cout << "--" << endl;
+//	}
+//	// Get best solution | TAKES HOURS
+//	//DFSComplete(stateAssignments);
+//
+//	// We insert the SCRUM dailies into the solution if they're enabled
+//	if (scrumTime != -1)
+//	{
+//		DFSSOLUTION = insertSCRUM(DFSSOLUTION);
+//		vector<vector<State>> BSCopy;
+//
+//
+//		for (size_t i = 0; i < BSSOLUTIONS.size(); i++)
+//		{
+//			BSCopy.push_back(insertSCRUM(BSSOLUTIONS.at(i)));
+//		}
+//
+//		BSSOLUTIONS = BSCopy;
+//	}
+//
+//	// We write the solutions into a CSV file
+//	//writeSolution(DFSSOLUTION);
+//	writeSolutions(BSSOLUTIONS);
+//
+//	std::cout << "Time elapsed Grounding = " << (std::chrono::duration_cast<std::chrono::microseconds>(endGrounding - beginGrounding).count()) / 1000000.0 << std::endl;
+//	std::cout << "Time elapsed Mutex = " << (std::chrono::duration_cast<std::chrono::microseconds>(endMutex - beginMutex).count()) / 1000000.0 << std::endl;
+//	//std::cout << "Time elapsed DFS = " << (std::chrono::duration_cast<std::chrono::microseconds>(endDFS - beginDFS).count()) / 1000000.0 << std::endl;
+//	std::cout << "Nodes created in DFS = " << DFSCounterNodes << " - Nodes expanded in DFS = " << DFSCounterExpanded << std::endl;
+//	std::cout << "Time elapsed BS = " << (std::chrono::duration_cast<std::chrono::microseconds>(endBS - beginBS).count()) / 1000000.0 << std::endl;
+//	std::cout << "Nodes created in BS = " << BSCounterNodes << " - Nodes expanded in BS = " << BSCounterExpanded << std::endl;
+//
+//
+//	cout << endl;
+//	cout << "*////////// Program ended //////////*" << endl;
+//	cout << "" << endl;
+//}
