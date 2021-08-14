@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <string_view>
+#include "TimeHelper.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -42,6 +43,9 @@ void CalendarTest()
 	sstr >> parse(s, d);
 	cout << d << "\n";
 
+	d++;
+	cout << d << "\n";
+
 	year_month_day programmers_day{ January / 7d / 2021 };
 	year_month_day spanishFormat{23d / March / 2021};
 	// Hay que poner ':' antes del formato entre brackets {}
@@ -70,9 +74,69 @@ void DateAndTimeTest() {
 	dateAndTime.printDateAndTime();
 }
 
+DateAndTime getFinishTimeOld(int taskDuration, DateAndTime initialDateAndTime) {
+
+	int hoursPerDay = 8;
+	int remainingHours;
+	int daysToAdvance = taskDuration / hoursPerDay;
+
+	// If there are more hours in the duration than labour hours, we advance time that many days
+	if (daysToAdvance != 0) {
+
+		remainingHours = taskDuration - daysToAdvance * 24;
+		// We advance the days directly
+		std::chrono::day daysToAdvance = std::chrono::day(daysToAdvance);
+		//daysToAdvance += 24d;
+		initialDateAndTime.date = { daysToAdvance / initialDateAndTime.date.month() / initialDateAndTime.date.year() };
+		//initialDateAndTime.date += std::chrono::months(taskDays);
+	}
+
+}
+
+tm getFinishTimeNew(int taskDuration, tm startTime) {
+
+	int startHour = 9;
+	int finishHour = 17;
+	int hoursPerDay = 8;
+	int scrumTime = 11;
+
+	// Auxiliary variables
+	size_t taskDays = taskDuration / hoursPerDay;
+	int remainingHours = taskDuration % hoursPerDay;
+	time_t timeAtStart;
+	time_t timeAtFinish;
+	time_t finishTime;
+
+	cout << "Time was: " << printTM(startTime) << "\n";
+
+	// If the task spans more than one labour day, we advance the days directly and add the remaining hours
+	if (taskDays != 0)
+	{
+		addDaysToTM(startTime, taskDays);
+
+		cout << "Time is: " << printTM(startTime) << "\n";
+
+		// Task duration is set to the remaining hours
+		taskDuration = remainingHours;
+
+	}
+
+	// The duration is added to the time
+	addHoursToTM(startTime, taskDuration);
+
+	cout << "Time is: " << printTM(startTime) << "\n";
+
+	return startTime;
+}
+
 int main() {
+
+	tm tmTest = parseDateAndTime("2021-08-11T9:00:00");
+
+	getFinishTimeNew(12, tmTest);
+
 	//CalendarTest();
 	//HourTest();
-	DateAndTimeTest();
+	//DateAndTimeTest();
 }
 

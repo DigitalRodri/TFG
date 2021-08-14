@@ -146,6 +146,9 @@
     <ClCompile Include="Concept-0.cpp" />
     <ClCompile Include="TimeTest.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TimeHelper.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
