@@ -121,17 +121,20 @@ tm getFinishTimeNew(int taskDuration, tm taskTime) {
 
 	}
 
+	int timeRemainingInDay = finishTime - taskTime.tm_hour;
+
 	// The duration is added to the time
 	addHoursToTM(taskTime, taskDuration);
 
 	cout << "Time after adding duration: " << printTM(taskTime) << "\n";
 
 	// We calculate the remaining hours, if any
-	int timeRemainingInDay = finishTime - taskTime.tm_hour;
-	if (taskDuration > timeRemainingInDay) int remainingHours = taskDuration - timeRemainingInDay;
+	remainingHours = -1;
+	if (taskDuration > timeRemainingInDay) remainingHours = taskDuration - timeRemainingInDay;
+	
 
 	// If there are remaining hours, we add them at the next day
-	if (remainingHours != NULL) {
+	if (remainingHours != -1) {
 
 		// If we are not yet passed midnight we advance the day forward
 		if (taskTime.tm_hour <= 23) addDaysToTM(taskTime, 1);
@@ -152,11 +155,8 @@ tm getFinishTimeNew(int taskDuration, tm taskTime) {
 
 int main() {
 
-	tm tmTest = parseDateAndTime("2021-08-16T9:00:00");
-	cout << "Time: " << printTM(tmTest) << "\n";
-	addDaysToTM(tmTest, 2);
-	cout << "Time: " << printTM(tmTest) << "\n";
-	//getFinishTimeNew(12, tmTest);
+	tm tmTest = parseDateAndTime("2021-08-16T14:00:00");
+	getFinishTimeNew(35, tmTest);
 
 	//CalendarTest();
 	//HourTest();

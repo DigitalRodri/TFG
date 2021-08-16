@@ -26,7 +26,7 @@ tm parseDateAndTime(std::string dateWithTime) {
     // Agregamos el formato de fecha
     ss >> std::get_time(&startDate, "%Y-%m-%dT%H:%M:%S");
 
-    // Cogemos el horario de verano local
+    // Cogemos el formato de horario de verano local y lo aplicamos
     time_t now = time(0);
     tm nowTM;
     localtime_s(&nowTM, &now);
@@ -73,9 +73,6 @@ void addDaysToTM(tm& time, int days) {
 
     time_t auxTime;
     auxTime = mktime(&time);
-    std::cout << auxTime << "\n";
     auxTime += (static_cast<unsigned __int64>(days)) * 86400;
-    std::cout << auxTime << "\n";
     localtime_s(&time, &auxTime);
-    std::cout << "Time: " << printTM(time) << "\n";
 }

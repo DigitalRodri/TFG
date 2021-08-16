@@ -1,2 +1,11 @@
-# Ignore the files of visual studio
-/.vs
+# Ignore everything
+*
+
+# But not these files...
+!.gitignore
+!Concept-0/
+!README.md
+# etc...
+
+# ...even if they are in subdirectories
+!*/
