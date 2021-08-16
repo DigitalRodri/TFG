@@ -1,12 +1,13 @@
 #pragma once
 
+#include "TimeHelper.h"
 #include <chrono>
 #include <format>
 #include <sstream>
 #include <string>
 #include <iostream>
 #include <string_view>
-#include "TimeHelper.h"
+
 
 using namespace std;
 using namespace std::chrono;
@@ -93,7 +94,7 @@ DateAndTime getFinishTimeOld(int taskDuration, DateAndTime initialDateAndTime) {
 
 }
 
-tm getFinishTimeNew(int taskDuration, tm startTime) {
+tm getFinishTimeNew(int taskDuration, tm taskTime) {
 
 	int startHour = 9;
 	int finishHour = 17;
@@ -105,16 +106,15 @@ tm getFinishTimeNew(int taskDuration, tm startTime) {
 	int remainingHours = taskDuration % hoursPerDay;
 	time_t timeAtStart;
 	time_t timeAtFinish;
-	time_t finishTime;
+	time_t finishTime = 17;
 
-	cout << "Time was: " << printTM(startTime) << "\n";
+	cout << "Time was: " << printTM(taskTime) << "\n";
 
 	// If the task spans more than one labour day, we advance the days directly and add the remaining hours
 	if (taskDays != 0)
 	{
-		addDaysToTM(startTime, taskDays);
-
-		cout << "Time is: " << printTM(startTime) << "\n";
+		addDaysToTM(taskTime, taskDays);
+		cout << "Time after adding days: " << printTM(taskTime) << " - " << taskDays << " day(s)" << "\n";
 
 		// Task duration is set to the remaining hours
 		taskDuration = remainingHours;
@@ -122,18 +122,41 @@ tm getFinishTimeNew(int taskDuration, tm startTime) {
 	}
 
 	// The duration is added to the time
-	addHoursToTM(startTime, taskDuration);
+	addHoursToTM(taskTime, taskDuration);
 
-	cout << "Time is: " << printTM(startTime) << "\n";
+	cout << "Time after adding duration: " << printTM(taskTime) << "\n";
 
-	return startTime;
+	// We calculate the remaining hours, if any
+	int timeRemainingInDay = finishTime - taskTime.tm_hour;
+	if (taskDuration > timeRemainingInDay) int remainingHours = taskDuration - timeRemainingInDay;
+
+	// If there are remaining hours, we add them at the next day
+	if (remainingHours != NULL) {
+
+		// If we are not yet passed midnight we advance the day forward
+		if (taskTime.tm_hour <= 23) addDaysToTM(taskTime, 1);
+
+		// Set the time to the start of the day
+		taskTime.tm_hour = startHour;
+
+		// Add the remaining hours
+		addHoursToTM(taskTime, remainingHours);
+
+		cout << "Time after adding remaining hours: " << printTM(taskTime) << "\n";
+	}
+
+	
+
+	return taskTime;
 }
 
 int main() {
 
-	tm tmTest = parseDateAndTime("2021-08-11T9:00:00");
-
-	getFinishTimeNew(12, tmTest);
+	tm tmTest = parseDateAndTime("2021-08-16T9:00:00");
+	cout << "Time: " << printTM(tmTest) << "\n";
+	addDaysToTM(tmTest, 2);
+	cout << "Time: " << printTM(tmTest) << "\n";
+	//getFinishTimeNew(12, tmTest);
 
 	//CalendarTest();
 	//HourTest();
